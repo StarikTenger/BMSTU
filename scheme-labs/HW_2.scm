@@ -57,4 +57,17 @@
   )
 
 ;;; 2 SETS ;;;
+; 2 delete
+(define (delete l pred?)
+  (if (pair? l)
+      (append (if (pred? (car l)) (list) (list (car l)) ) (delete (cdr l) pred?))
+      (list)
+      )
+  )
 
+(define (list->set xs)
+  (if (and (pair? xs))
+      (append (list (car xs)) (list->set (delete (cdr xs) (lambda (x) (= x (car xs))))))
+      xs
+      )
+  )
