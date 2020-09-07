@@ -36,17 +36,17 @@
 ; 5
 ; any? 
 (define (any? pred? xs)
-  (if (pair? xs)
-      (or (pred? (car xs)) (any? pred? (cdr xs)) )
-      #f
-      )
+  (and
+   (pair? xs)
+   (or (pred? (car xs)) (any? pred? (cdr xs)) )
+   )
   )
 ; all?
 (define (all? pred? xs)
-  (if (pair? xs)
-      (and (pred? (car xs)) (all? pred? (cdr xs)) )
-      #t
-      )
+  (or
+   (not (pair? xs))
+   (and (pred? (car xs)) (all? pred? (cdr xs)) )
+   )
   )
 
 ; 6
@@ -56,7 +56,7 @@
       (if (pair? args)
           (car args)
           (lambda (x) x)
-       )
+          )
       )
   )
 

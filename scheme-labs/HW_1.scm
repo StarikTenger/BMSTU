@@ -50,13 +50,13 @@
   )
 
 (define (prime-r? n x)
-  (if(= x 1)
-     #t
-     (if (= (remainder n x) 0)
-         #f
-         (prime-r? n (- x 1))
-         )
-     )
+  (or
+   (= x 1)
+   (and
+    (not (= (remainder n x) 0))
+    (prime-r? n (- x 1))
+    )
+   )
   )
 
 (define (prime? n)
