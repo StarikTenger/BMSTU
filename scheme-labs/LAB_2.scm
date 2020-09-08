@@ -7,9 +7,13 @@
   )
 
 ; 2 delete
-(define (delete l pred?)
-  (if (pair? l)
-      (append (if (pred? (car l)) (list) (list (car l)) ) (delete (cdr l) pred?))
+(define (delete pred? xs)
+  (if (pair? xs)
+      (append
+       (if (pred? (car xs))
+           (list)
+           (list (car xs)) )
+       (delete pred? (cdr xs)))
       (list)
       )
   )
@@ -63,11 +67,3 @@
 (define (o . args)
   (o-raw args)
   )
-
-
-
-
-
-
-
-

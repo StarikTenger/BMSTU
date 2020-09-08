@@ -57,7 +57,7 @@
   )
 
 ;;; 2 SETS ;;;
-; 2 delete
+; delete
 (define (delete l pred?)
   (if (pair? l)
       (append (if (pred? (car l)) (list) (list (car l)) ) (delete (cdr l) pred?))
@@ -65,9 +65,131 @@
       )
   )
 
+; list->set
 (define (list->set xs)
   (if (and (pair? xs))
       (append (list (car xs)) (list->set (delete (cdr xs) (lambda (x) (= x (car xs))))))
       xs
       )
   )
+
+; set?
+(define (set? xs)
+  (or (not (pair? xs))
+      (and (not (my-element? (car xs) (cdr xs))) (set? (cdr xs)))
+      )
+  )
+
+; union
+(define (union xs ys)
+  (list->set (append xs ys))
+  )
+
+; intersection
+(define (intersection xs ys)
+  ( if (pair? xs)
+       (append
+        (if (my-element? (car xs) ys)
+            (list (car xs))
+            (list))
+        (intersection (cdr xs) ys))
+       (list)
+       )
+  )
+
+; difference
+(define (difference xs ys)
+  ( if (pair? xs)
+       (append
+        (if (my-element? (car xs) ys)
+            (list)
+            (list (car xs)))
+        (difference (cdr xs) ys))
+       (list)
+       )
+  )
+
+; symmetric-difference
+(define (symmetric-difference xs ys)
+  (union (difference xs ys) (difference ys xs))
+  )
+
+; subset
+(define (set-subset? xs ys)
+  ( or
+    (not (pair? xs))
+    (and
+     ( my-element? (car xs) ys)
+     (set-subset? (cdr xs) ys)
+     )
+    )
+  )
+
+; equality
+(define (set-eq? xs ys)
+  (and (set-subset? xs ys) (set-subset? ys xs))
+  )
+
+;;; 3 STRINGS ;;;
+(define (list-trim-left str) ; in list format
+  (if (or (not (pair? str)) (or (equal? (car str) #\space) (equal? (car str) #\tab)))
+      (list-trim-left (cdr str))
+      str
+      )
+  )
+
+; string-trim-left
+(define (string-trim-left str)
+  (list->string (list-trim-left (string->list str)))
+  )
+
+; reverse
+(define (my-reverse xs)
+  (if (pair? xs)
+      (append (reverse (cdr xs)) (list (car xs)))
+      (list)
+      )
+  )
+
+; string-trim-right
+(define (string-trim-right str)
+  (list->string (my-reverse (string-trim-left-p (my-reverse (string->list str)))))
+  )
+
+; prefix
+(define (list-prefix? a b)
+  (or
+   (not (pair? a))
+   (and
+    (pair? b)
+    (and (equal? (car a) (car b)) (list-prefix? (cdr a) (cdr b)))
+    )
+   )
+  )
+
+(define (string-prefix? a b)
+  (list-prefix? (string->list a) (string->list b))
+  )
+
+; suffix
+(define (list-suffix? a b)
+  (list-prefix? (my-reverse a) (my-reverse b))
+  )
+
+(define (string-suffix? a b)
+  (list-suffix? (string->list a) (string->list b))
+  )
+
+; infix
+(define (list-infix? a b)
+  (and (pair? b) (or (list-prefix? a b) (list-infix? a (cdr b))))
+  )
+
+(define (string-infix? a b)
+  (list-infix? (string->list a) (string->list b))
+  )
+
+
+
+
+
