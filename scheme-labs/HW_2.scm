@@ -189,6 +189,47 @@
   (list-infix? (string->list a) (string->list b))
   )
 
+(define (cdr-iter xs i) ; applies cdr for i times
+  (if (and (> i 0) (pair? xs))
+      (cdr-iter  (cdr xs) (- i 1))
+      xs
+   )
+  )
+
+(define (size xs) ; list size
+  (if (pair? xs)
+      (+ 1 (size (cdr xs)))
+      0
+   )
+  )
+
+(define (list-apply f xs) ; applies f to every element
+  (if (pair? xs)
+      (append (list (f (car xs))) (list-apply f (cdr xs)))
+      (list)
+   )
+  )
+
+; split
+(define (list-split-p l sep buff sep-size)
+  (if (pair? l)
+      (if (list-prefix? sep l)
+          (append (list buff) (list-split-p (cdr-iter l sep-size) sep (list) sep-size))
+          (list-split-p (cdr l) sep (append buff (list (car l))) sep-size)
+          )
+      (list buff)
+      )
+  )
+
+(define (list-split l sep)
+  (list-split-p l sep (list) (size sep))
+  )
+
+(define (string-split str sep)
+  (list-apply list->string (list-split (string->list str) (string->list sep)))
+  )
+
+
 
 
 
