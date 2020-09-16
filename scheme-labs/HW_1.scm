@@ -1,7 +1,11 @@
 ;;; DAY OF WEEK ;;;
 ; works with prepared data
 (define (day-of-week-raw d m y)
-  (  remainder (+ d (quotient (* 31 m) 12) (+ y (quotient y 4)) (quotient (- 0 y) 100) (quotient y 400)) 7)
+  (  remainder (+ d
+                  (quotient (* 31 m) 12)
+                  (+ y (quotient y 4))
+                  (quotient (- 0 y) 100)
+                  (quotient y 400)) 7)
   )
 
 ; correction
@@ -13,6 +17,13 @@
 (define (day-of-week d m y)
   ( day-of-week-raw d (+ m (* (corr m)  12) -2) (- y (corr m)) )
   )
+
+; examples
+(display "--- 1 ---\n" )
+(day-of-week 04 12 1975) ; 4
+(day-of-week 04 12 2006) ; 1
+(day-of-week 29 05 2013) ; 3
+
 
 ;;; ROOTS ;;;
 (define (D a b c) ; discriminant
@@ -36,6 +47,10 @@
            )
       )
   )
+
+; examples
+(display "--- 2 ---\n" )
+
 
 ;;; GCD, LCM, PRIME ;;;
 (define (my-gcd a b)
@@ -62,3 +77,10 @@
 (define (prime? n)
   (prime-r? n ( - n 1))
   )
+
+; examples
+(display "--- 3 ---\n" )
+(my-gcd 3542 2464) ; 154
+(my-lcm 3 4)       ;  12
+(prime? 11)        ;  #t
+(prime? 12)        ;  #f

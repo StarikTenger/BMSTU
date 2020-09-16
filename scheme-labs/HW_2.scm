@@ -189,25 +189,26 @@
   (list-infix? (string->list a) (string->list b))
   )
 
+; some functions
 (define (cdr-iter xs i) ; applies cdr for i times
   (if (and (> i 0) (pair? xs))
       (cdr-iter  (cdr xs) (- i 1))
       xs
-   )
+      )
   )
 
 (define (size xs) ; list size
   (if (pair? xs)
       (+ 1 (size (cdr xs)))
       0
-   )
+      )
   )
 
 (define (list-apply f xs) ; applies f to every element
   (if (pair? xs)
       (append (list (f (car xs))) (list-apply f (cdr xs)))
       (list)
-   )
+      )
   )
 
 ; split
@@ -230,7 +231,94 @@
   )
 
 
+;;; 4 multi-dim vector ;;;
+
+(define (multiply xs)
+  (if (pair? xs)
+      (* (car xs) (multiply (cdr xs)))
+      1
+      )
+  )
+
+(define (vector-set-range! vec i xs)
+
+  (if (pair? xs)
+      (vector-set! vec i (car xs))
+      )
+  (if (pair? xs)
+      (vector-set-range! vec ( + i 1) ( cdr xs))
+      )
+      
+  )
+
+(define (subvector->list vec i j)
+  (if (> i j)
+      '()
+      (cons (vector-ref vec i) (subvector->list vec (+ i 1) j))
+      )
+  )
+
+(define (make-multi-vector-fill sizes fill)
+  (define vec (make-vector (+ 1 (size sizes) (multiply sizes)) fill))
+  (vector-set! vec 0 (size sizes))
+  (vector-set-range! vec 1 sizes)
+  vec
+  )
+
+(define (make-multi-vector . args)
+  (if (= (size args) 2)
+      (make-multi-vector-fill (car args) (car (cdr args)))
+      (make-multi-vector-fill (car args) 0)
+      )
+  )
+
+(define (multi-vector? m)
+  (define len (vector-length m))
+  (and
+   (> len 0)
+   (> len (vector-ref m 0))
+   (= len (+ 1 (vector-ref m 0) (multiply (subvector->list m 1 (vector-ref m 0)))))
+   )
+  )
+
+(define (dot-prod a b)
+  (if (pair? a)
+      (+ (* (car a) (car b)) (dot-prod (cdr a) (cdr b)))
+      0
+      )
+  )
+
+(define (index shape indicies)
+  (define s (cons 1 (cdr (reverse shape))))
+  (dot-prod s indicies)
+  )
+
+(define (multi-vector-shape m)
+  (subvector->list m 1 (vector-ref m 0))
+  )
+
+(define (multi-vector-ref m indices)
+  (define s (multi-vector-shape m)) ; shape
+  (vector-ref m (index s indices))
+  )
+
+(define (multi-vector-set! m indices x)
+  (define s (multi-vector-shape m)) ; shape
+  (vector-set! m (index s indices) x)
+  )
 
 
+;;; 5 func-composition ;;;
+(define (o-raw args)
+  (if (pair? args)
+      (lambda (x) ((o-raw (cdr args)) ((car args) x)))
+      (if (pair? args)
+          (car args)
+          (lambda (x) x)
+          )
+      )
+  )
 
-
+(define (o . args)
+  (o-raw (reverse args))
+  )
