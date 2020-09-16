@@ -232,7 +232,7 @@
 ; converts indicies to one-number index
 (define (index shape indicies)
   (define s (cons 1 (cdr (reverse shape))))
-  (+ dot-prod s indicies) 1 (size indicies))
+  (+ (dot-prod s indicies) 1 (size indicies)))
 
 ; gets element
 (define (multi-vector-ref m indices)
