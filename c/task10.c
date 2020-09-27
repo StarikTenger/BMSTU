@@ -66,9 +66,8 @@ int main(int argc, char **argv)
 }
 
 int maxarray(void  *base, unsigned long nel, unsigned long width, 
-    int (*compare)(void *a, void *b)) 
-{
-    void* max = base;
+int (*compare)(void *a, void *b)) {
+    void *max = base;
     int idx = 0;
     for (unsigned long i = 0; i < nel; i++) 
     {
