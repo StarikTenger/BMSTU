@@ -1,7 +1,7 @@
 #include  <stdio.h>
 
 int array[] = { 1, 2, 30, 45, 50, 51, 55, 60 };
-const int k = 2;
+const int k = 55;
 
 int compare(unsigned long i)
 {
