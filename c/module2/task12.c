@@ -2,15 +2,19 @@
 #include <stdlib.h>
 #include <string.h>
 
-int *prefix_function (char *s) {
-	int n = strlen(s);//0; for (;s[n] != '\0'; n++);
+int comp_forbidden(char *s, int i, int j, int forbidden) { // Symbol on forbidden index is not equal to any other
+    return s[i] == s[j] && i != forbidden && j != forbidden;
+}
+
+int *prefix_function (char *s, int forbidden) { 
+	int n = strlen(s);
 	int *pi = malloc(n * sizeof(int));
     for (int i = 0; i < n; i++) pi[i] = 0;
 	for (int i = 1; i < n; i++) {
-		int j = pi[i -1];
-		while (j > 0 && s[i] != s[j])
+		int j = pi[i - 1];
+		while (j > 0 && !comp_forbidden(s, i, j, forbidden))
 			j = pi[j - 1];
-		if (s[i] == s[j])  ++j;
+		if (comp_forbidden(s, i, j, forbidden))  j++;
 		pi[i] = j;
 	}
 	return pi;
@@ -26,12 +30,12 @@ int main(int argc, char **argv) {
     char* str = malloc((len_s + len_t + 1 + 1) * sizeof(char));
     int i = 0;
     for(;i < len_s; i++) str[i] = s[i];
-    str[len_s] = '$';
+    str[len_s] = ' '; // There can be any symbol
     for(;i < len_s + len_t; i++) str[i + 1] = t[i - len_s];
     str[len_s + len_t + 1] = '\0'; 
 
     int len = strlen(str);
-    int *pref = prefix_function(str);
+    int *pref = prefix_function(str, len_s);
 
     for (int i = len_s + 1; i < len; i++)
         if (pref[i] == len_s)
