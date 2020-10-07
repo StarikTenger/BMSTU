@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 void bubblesort(unsigned long nel, 
     int (*compare)(unsigned long i, unsigned long j), 
     void (*swap)(unsigned long i, unsigned long j)) 
-    { 
+    {
     for (int i = 0; i * 2 < nel; i++) {
         for (int j = 0; j < nel * 2; j++) {
             int j1 = (j < nel) ? j : (nel * 2 - j);
@@ -61,4 +61,4 @@ void bubblesort(unsigned long nel,
                 swap(j1, j1 + 1);
         }
     }
-} 
+}
