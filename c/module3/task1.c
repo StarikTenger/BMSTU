@@ -13,61 +13,51 @@ struct Task Task_new(int left, int right) {
     return t;
 }
 
-struct Elem {
-    struct Task value;
-    struct Elem *next;
-};
 
-struct Mystack {
-    struct Elem *top;
-};
-
-struct Task Mystack_top(struct Mystack *s) {
-    struct Task value  = s->top->value;
-    struct Elem *top = s->top;
-    s->top = s->top->next;
-    free(top);
-    return value;
-}
-
-void Mystack_add(struct Mystack *s, struct Task value) {
-    struct Elem *top = malloc(sizeof(struct Elem));
-    top->value = value;
-    top->next = s->top;
-    s->top = top;
+void swap(int *a, int *b) {
+    int c = *a;
+    *a = *b;
+    *b = c;
 }
 
 int iteration(int *arr, int left, int right, int mid) {
-    int *arr_new = malloc(sizeof(int) * (right - left));
-    int k = 0;
-    for (int i = left; i < right; i++)
-        if (arr[i] < arr[mid])
-            arr_new[k] = arr[i], k++;
-    int mid_i = k;
-    for (int i = left; i < right; i++)
-        if (arr[i] >= arr[mid])
-            arr_new[k] = arr[i], k++;
-    for (int i = left; i < right; i++)
-        arr[i] = arr_new[i -left];
-    free(arr_new);
-    return mid_i;
+    int k = left;
+    int mid_val = arr[mid];
+    for (int i = left; i < right; i++) {
+        if (arr[i] < mid_val) {
+            while (arr[k] < mid_val)
+                k++;
+            swap(&arr[i], &arr[k]);
+        }
+    }
+    return k - left;
 }
 
 void quick_sort(int *arr, int n) {
-    struct Mystack stack;
-    stack.top = 0;
+    struct Task *stack = malloc(sizeof(struct Task) * n);
+    int i = 0;
+    stack[i++] = Task_new(0, n);
 
-    Mystack_add(&stack, Task_new(0, n));
-    while (stack.top) {
-        struct Task task = Mystack_top(&stack);
+    while(i) {
+        struct Task task = stack[--i];
+        for (;;) {
+            int mid = task.left + iteration(arr, task.left, task.right, task.left) + 1;
+            //printf("%d : %d %d\n", i, task.left, task.right);
 
-        int mid = task.left + iteration(arr, task.left, task.right, task.left) + 1;
+            if (mid <= task.left + 1 && mid + 1 >= task.right)
+                break;
 
-        if (mid > task.left + 1)
-            Mystack_add(&stack, Task_new(task.left, mid));
-        if (mid + 1 < task.right)
-            Mystack_add(&stack, Task_new(mid, task.right));
+            if (mid - task.left < task.right - mid) {
+                stack[i++] = Task_new(task.left, mid);
+                task.left = mid;
+            } else {
+                stack[i++] = Task_new(mid, task.right);
+                task.right = mid;
+            }
+        }
     }
+
+    free(stack);
 }
 
 int main(int argc, char **argv) {

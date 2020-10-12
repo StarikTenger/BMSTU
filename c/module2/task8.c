@@ -32,18 +32,25 @@ int iteration(int *arr, int left, int right, int mid) {
 }
 
 void quick_sort(int *arr, int left, int right, int m) {
-    int mid = left + iteration(arr, left, right, left) + 1;
+    for(;;) {
+        int mid = left + iteration(arr, left, right, left) + 1;
 
-    if (right - left < 2)
-        return;
+        if (right - left < 2)
+            return;
 
-    if (right - left < m) {
-        selection_sort(arr, left, right);
-        return;
+        if (right - left < m) {
+            selection_sort(arr, left, right);
+            return;
+        }
+        
+        if (mid - left < right - mid) {
+            quick_sort(arr, left, mid, m);
+            left = mid;
+        } else {
+            quick_sort(arr, mid, right, m);
+            right = mid;
+        }
     }
-    
-    quick_sort(arr, left, mid, m);
-    quick_sort(arr, mid, right, m);
 }
 
 int main(int argc, char **argv) {
