@@ -14,20 +14,12 @@
        ; - 
        ((equal? (car expr) '-)
         (list '- (der (cadr expr) x) (der (caddr expr) x)))
-       ; *
+        ; *
        ((equal? (car expr) '*)
         (list '+
               (list '* (der (cadr expr) x) (caddr expr))
               (list '* (cadr expr) (der (caddr expr) x))
               ))
-       ; /
-       ((equal? (car expr) '/)
-        (list '/ 
-              (list '-
-                    (list '* (der (cadr expr) x) (caddr expr))
-                    (list '* (cadr expr) (der (caddr expr) x))
-                    )
-              (list 'expt (caddr expr) 2)))
        ; exponent
        ((equal? (car expr) 'expt)
         (list '+
@@ -151,7 +143,6 @@
                (test (derivative '(* 3 (log x)) 'x) '(/ 3 x)) ; 19
                (test (derivative '(+ (expt x 3) (expt x 2)) 'x) '(+ (* 3 (expt x 2)) (* 2 x))) ; 20
                (test (derivative '(- (* 2 (expt x 3)) ( * 2 (expt x 2))) 'x) '(- (* 6 (expt x 2)) (* 4 x))) ; 21
-               (test (derivative '(/ 3 x) 'x) '(/ (- 3) (expt x 2))) ; 22
                ))
 
 (run-tests tests)
