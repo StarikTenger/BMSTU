@@ -43,6 +43,22 @@
 (define (my-fold-left op xs)
   (my-fold-left-raw op (cdr xs) (car xs)))
 
+; exapmles
+(display "--- 1 ---\n" )
+(my-range  0 11 3) ; (0 3 6 9)
+
+(my-flatten '((1) 2 (3 (4 5)) 6)) ; (1 2 3 4 5 6)
+
+(my-element? 1 '(3 2 1)) ; #t
+(my-element? 4 '(3 2 1)) ; #f
+
+(my-filter odd? (my-range 0 10 1)) ; (1 3 5 7 9)
+(my-filter (lambda (x) (= (remainder x 3) 0)) (my-range 0 13 1)) ; (0 3 6 9 12)
+
+(my-fold-left  quotient '(16 2 2 2 2)) ; 1
+(my-fold-right expt     '(2 3 4))      ; 2417851639229258349412352
+;
+
 ;;; 2 SETS ;;;
 ; delete
 (define (delete l pred?)
@@ -101,9 +117,28 @@
 (define (set-eq? xs ys)
   (and (set-subset? xs ys) (set-subset? ys xs)))
 
+; exapmles
+(display "--- 2 ---\n" )
+(my-range  0 11 3) ; (0 3 6 9)
+
+(list->set '(1 1 2 3))                       ; (3 2 1)
+(set? '(1 2 3))                              ; #t
+(set? '(1 2 3 3))                            ; #f
+(set? '())                                   ; #t
+(union '(1 2 3) '(2 3 4))                    ; (4 3 2 1)
+(intersection '(1 2 3) '(2 3 4))             ; (2 3)
+(difference '(1 2 3 4 5) '(2 3))             ; (1 4 5)
+(symmetric-difference '(1 2 3 4) '(3 4 5 6)) ; (6 5 2 1)
+(set-eq? '(1 2 3) '(3 2 1))                  ; #t
+(set-eq? '(1 2) '(1 3))                      ; #f
+;
+
 ;;; 3 STRINGS ;;;
 (define (list-trim-left str) ; in list format
-  (if (or (not (pair? str)) (or (equal? (car str) #\space) (equal? (car str) #\tab)))
+  (if (or (not (pair? str))
+          (or (equal? (car str) #\newline)
+              (equal? (car str) #\space)
+              (equal? (car str) #\tab)))
       (list-trim-left (cdr str))
       str))
 
@@ -119,7 +154,12 @@
 
 ; string-trim-right
 (define (string-trim-right str)
-  (list->string (my-reverse (string-trim-left-p (my-reverse (string->list str))))))
+  (list->string (my-reverse (list-trim-left (my-reverse (string->list str))))))
+
+; string-trim
+(define (string-trim str)
+  (string-trim-left (string-trim-right str))
+  )
 
 ; prefix
 (define (list-prefix? a b)
@@ -176,6 +216,27 @@
 (define (string-split str sep)
   (list-apply list->string (list-split (string->list str) (string->list sep))))
 
+
+; exapmles
+(display "--- 3 ---\n" )
+(string-trim-left  "\t\tabc def")   ; "abc def"
+(string-trim-right "abc def\t")     ; "abc def"
+(string-trim       "\t abc def \n") ; "abc def"
+
+(string-prefix? "abc" "abcdef")  ; #t
+(string-prefix? "bcd" "abcdef")  ; #f
+
+(string-suffix? "def" "abcdef")  ; #t
+(string-suffix? "bcd" "abcdef")  ; #f
+
+(string-infix? "def" "abcdefgh") ; #t
+(string-infix? "abc" "abcdefgh") ; #t
+(string-infix? "fgh" "abcdefgh") ; #t
+(string-infix? "ijk" "abcdefgh") ; #f
+
+(string-split "x;y;z" ";")       ; ("x" "y" "z")
+(string-split "x-->y-->z" "-->") ; ("x" "y" "z")
+;
 
 ;;; 4 multi-dim vector ;;;
 
@@ -244,6 +305,17 @@
   (define s (multi-vector-shape m)) ; shape
   (vector-set! m (index s indices) x))
 
+; exapmles
+(display "--- 4 ---\n" )
+(define m (make-multi-vector '(11 12 9 16)))
+(multi-vector? m)
+(multi-vector-set! m '(10 7 6 12) 'test)
+(multi-vector-ref m '(10 7 6 12)) ; test
+
+(define m (make-multi-vector '(3 5 7) -1))
+(multi-vector-ref m '(0 0 0)) ; -1
+;
+
 
 ;;; 5 func-composition ;;;
 (define (o-raw args)
@@ -255,3 +327,34 @@
 
 (define (o . args)
   (o-raw (reverse args)))
+
+; examples
+(display "--- 5 ---\n" )
+(define (f x) (* x 2))
+(define (g x) (* x 3))
+(define (h x) (- x))
+    
+((o f g h) 1) ; -6
+((o f g) 1)   ; 6
+((o h) 1)     ; -1
+((o) 1)       ; 1
+
+;;; quick-sort ;;
+; filter
+(define (filter pred? xs)
+  ( if (null? xs)
+       '()
+       (append
+        (if (pred? (car xs))
+            (list (car xs))
+            '())
+        (filter pred? (cdr xs)))))
+
+; sort
+(define (qsort xs)
+  (if ( or (null? xs) )
+      '()
+      (append
+       (qsort (filter (lambda (x) (< x (car xs))) xs))
+       (list (car xs))
+       (qsort (cdr (filter (lambda (x) (>= x (car xs))) xs))))))
