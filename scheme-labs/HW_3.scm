@@ -109,6 +109,7 @@
            (else (begin (trace-ex op) (trace-ex expr)))))
        (* expr x)))
 
+;
 (define (expand-expt expr x)
   ( if (list? expr)
        (let ((op (car expr)))
