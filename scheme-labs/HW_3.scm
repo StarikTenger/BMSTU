@@ -130,32 +130,82 @@
 ; expand brackets with multiplication
 (define (expand expr)
   (if (list? expr)
-      (if (equal? (car expr) '*)
-          (let ((a (cadr expr)) (b (caddr expr)))
-            (cond
-              ((and (number? a) (list? b) (can-mult? b)) (trace-ex (mult (expand b) a)))
-              ((and (number? b) (list? a) (can-mult? a)) (trace-ex (mult (expand a) b)))
-              (else expr)
-              ))
-          (if (equal? (car expr) 'expt)
-              (let ((a (cadr expr)) (b (caddr expr)))
-                (cond
-                  ((and (number? a) (list? b) (can-mult? b)) (trace-ex (expand-expt (expand b) a)))
-                  ((and (number? b) (list? a) (can-mult? a)) (trace-ex (expand-expt (expand a) b)))
-                  (else expr)
-                  ))
-              (if (= (length expr) 3)
+      (cond
+        ((equal? (car expr) '*)
+         (let ((a (cadr expr)) (b (caddr expr)))
+           (cond
+             ((and (number? a) (list? b) (can-mult? b)) (trace-ex (mult (expand b) a)))
+             ((and (number? b) (list? a) (can-mult? a)) (trace-ex (mult (expand a) b)))
+             (else expr)
+             )))
+        ((equal? (car expr) 'expt)
+         (let ((a (cadr expr)) (b (caddr expr)))
+           (cond
+             ((and (number? a) (list? b) (can-mult? b)) (trace-ex (expand-expt (expand b) a)))
+             ((and (number? b) (list? a) (can-mult? a)) (trace-ex (expand-expt (expand a) b)))
+             (else expr)
+             )))
+        (else (if (= (length expr) 3)
                   (list (car expr) (expand (cadr expr)) (expand (caddr expr)))
                   (list (car expr) (expand (cadr expr))))))
       expr))
 
+
+;; minus simplifying
+(define (count-minus expr)
+  (if (list? expr)
+      (if (= (length expr) 2)
+          (if (equal? (car expr) '-)
+              (+ (count-minus (cadr expr)) 1)
+              0)
+          (cond
+            ((or (equal? (car expr) '*) (equal? (car expr) '/))
+             (+ (count-minus (cadr expr)) (count-minus (caddr expr))))
+            (else 0)
+            ))
+      0))
+
+(define (need-minus? expr)
+  (= (remainder (count-minus expr) 2) 1))
+
+; erases all posiible minuses from expression
+(define (erase-minus expr)
+  (if (list? expr)
+      (if (= (trace-ex (length expr)) 2)
+          (if (equal? (car expr) '-)
+              (erase-minus (cadr expr))
+              expr)
+          (let ((op (car expr)))
+            (cond
+              ((or (equal? (trace-ex op) '*) (equal? op '/))
+               (list op (erase-minus (cadr expr)) (erase-minus (caddr expr))))
+              (else expr))))
+      expr))
+
+; simplify minus once
+(define (simplify-minus expr)
+  (if (need-minus? expr)
+      (list '- (erase-minus expr))
+      (erase-minus expr)))
+
+; simplify minus recursevely
+(define (simplify-minus-rec expr)
+  (if (list? expr)
+      (if (= (length expr) 2)
+          (simplify-minus expr)
+          (cond
+            ((not (or (equal? (trace-ex (car expr)) '*) (equal? (car expr) '/)))
+             (list (car expr) (simplify-minus (cadr expr)) (simplify-minus (caddr expr))))
+            (else (simplify-minus expr))))
+      (simplify-minus expr)))
+
 ;; final derivative function
 (define (derivative expr x)
-  (expand (collapse (trace-ex (der expr x)))))
+  (simplify-minus-rec (expand (collapse (trace-ex (der expr x))))))
 
 ;; Unit tests
 (define tests (list
-               (test (derivative '2 'x) 0) ; 1
+               (test (derivative '2 'x) 0) ; 1"
                (test (derivative 'x 'x) 1) ; 2
                (test (derivative '(- 0 x) 'x) -1) ; 3
                (test (derivative '(* 1 x) 'x) 1) ; 4
@@ -176,8 +226,9 @@
                (test (derivative '(* 3 (log x)) 'x) '(/ 3 x)) ; 19
                (test (derivative '(+ (expt x 3) (expt x 2)) 'x) '(+ (* 3 (expt x 2)) (* 2 x))) ; 20
                (test (derivative '(- (* 2 (expt x 3)) ( * 2 (expt x 2))) 'x) '(- (* 6 (expt x 2)) (* 4 x))) ; 21
-               (test (derivative '(/ 3 x) 'x) '(/ (- 3) (expt x 2))) ; 22
+               (test (derivative '(/ 3 x) 'x) '(- (/ 3 (expt x 2)))) ; 22
                (test (derivative '(/ 3 (* 2 (expt x 2))) 'x) '(/ (- 3) (expt x 3))) ; 23
+               (test (derivative '(* 2 (* (sin x) (cos x))) 'x) '(+ (* (cos x) (cos x)) (- (* (sin x) (sin x))))) ; 24
                ))
 
 (run-tests tests)
