@@ -199,6 +199,15 @@
             (else (simplify-minus expr))))
       (simplify-minus expr)))
 
+;;; CONVOLUTION
+(define (convolution expr op)
+  (if (pair? expr)
+      (if (pair? (cdr expr))
+      (list op (car expr) (convolution (cdr expr) op))
+      (car expr))
+      expr))
+
+
 ;; final derivative function
 (define (derivative expr x)
   (simplify-minus-rec (expand (collapse (trace-ex (der expr x))))))
