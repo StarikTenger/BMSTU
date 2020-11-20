@@ -46,19 +46,40 @@ int main(int argc, char **argv)
 
     free(array); 
     return 0; 
-}
+} 
 
 void bubblesort(unsigned long nel, 
-    int (*compare)(unsigned long i, unsigned long j), 
-    void (*swap)(unsigned long i, unsigned long j)) 
+        int (*compare)(unsigned long i, unsigned long j), 
+        void (*swap)(unsigned long i, unsigned long j)) 
     {
-    for (int i = 0; i * 2 < nel; i++) {
-        for (int j = 0; j < nel * 2; j++) {
-            int j1 = (j < nel) ? j : (nel * 2 - j);
-            if (j1 >= nel - 1)
-                continue;
-            if (compare(j1, j1 + 1) == 1)
-                swap(j1, j1 + 1);
+    int sorted_left = 0;
+    int sorted_right = nel;
+    int count = 0;
+    for (int j = 0; j < nel; j++) {
+        count = 0;
+        int right = sorted_right;
+        for (int i = sorted_left + 1; i < sorted_right; i++) {
+            if (compare(i - 1, i) == 1) {
+                swap(i - 1, i);
+                count++;
+                right = i;
+            }
         }
+        sorted_right = right;
+        if (!count)
+            break;
+
+        count = 0;
+        int left = sorted_left;
+        for (int i = sorted_right - 1; i > sorted_left; i--) {
+            if (compare(i - 1, i) == 1) {
+                swap(i - 1, i);
+                left = i;
+                count++;
+            }
+        }
+        sorted_left = left;
+        if (!count)
+            break;
     }
-}
+} 
