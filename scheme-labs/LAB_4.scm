@@ -42,3 +42,27 @@
 
 (define (count-strings path)
   (calculate-strings-from-input-port (open-input-file path) #\newline))
+
+;; == 3 : MEMORIZATION =================================================
+
+(define tribonachi-vector (make-vector 100 #f))
+
+(define (tribonachi-seq-naive x)
+  (cond
+    ((< x 2) 0)
+    ((equal? x 2) 1)
+    (else (+ (tribonachi-seq-naive (- x 1)) (tribonachi-seq-naive (- x 2)) (tribonachi-seq-naive (- x 3))))))
+
+(define (tribonachi-seq-mem x)
+  (if (vector-ref tribonachi-vector x)
+      (vector-ref tribonachi-vector x)
+      (begin
+        (vector-set! tribonachi-vector x
+                     (cond
+                       ((< x 2) 0)
+                       ((equal? x 2) 1)
+                       (else (+
+                              (tribonachi-seq-mem (- x 1))
+                              (tribonachi-seq-mem (- x 2))
+                              (tribonachi-seq-mem (- x 3))))))
+        (tribonachi-seq-mem x))))
