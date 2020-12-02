@@ -130,13 +130,23 @@
   (syntax-rules ()
     ((_ cond? exprs ...)
      (letrec ((loop (lambda ()
+                        (if cond?
+                            (begin
+                              (begin exprs ...)
+                              (loop))))))
+       (loop)))))
+
+
+;; -- C : REPEAT UNTIL -------------------------------------------------
+
+(define-syntax repeat
+  (syntax-rules (until)
+    ((_ exprs ... until cond?)
+     (letrec ((loop (lambda ()
                       (begin
                         (begin exprs ...)
                         (if cond? (loop))))))
        (loop)))))
-
-
-
 
 
 
