@@ -114,17 +114,26 @@
 (define-syntax for
   (syntax-rules (as in)
     ((_ x in xss exprs ...)
-         (letrec ((loop (lambda (xs)
-                          (if (pair? xs)
-                              (begin
-                                ((lambda (x) (begin exprs ...)) (car xs))
-                                (loop (cdr xs))
-                                )))))
-           (loop xss)))
+     (letrec ((loop (lambda (xs)
+                      (if (pair? xs)
+                          (begin
+                            ((lambda (x) (begin exprs ...)) (car xs))
+                            (loop (cdr xs)))))))
+       (loop xss)))
     ((_ xss as x exprs ...)
-         (for x in xss exprs ...))))
+     (for x in xss exprs ...))))
 
 
+;; -- C : WHILE --------------------------------------------------------
+
+(define-syntax while
+  (syntax-rules ()
+    ((_ cond? exprs ...)
+     (letrec ((loop (lambda ()
+                      (begin
+                        (begin exprs ...)
+                        (if cond? (loop))))))
+       (loop)))))
 
 
 
