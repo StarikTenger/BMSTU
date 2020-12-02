@@ -130,14 +130,14 @@
   (syntax-rules ()
     ((_ cond? exprs ...)
      (letrec ((loop (lambda ()
-                        (if cond?
-                            (begin
-                              (begin exprs ...)
-                              (loop))))))
+                      (if cond?
+                          (begin
+                            (begin exprs ...)
+                            (loop))))))
        (loop)))))
 
 
-;; -- C : REPEAT UNTIL -------------------------------------------------
+;; -- D : REPEAT UNTIL -------------------------------------------------
 
 (define-syntax repeat
   (syntax-rules (until)
@@ -149,4 +149,19 @@
        (loop)))))
 
 
+;; -- E : COUT ---------------------------------------------------------
 
+(define-syntax cout
+  (syntax-rules (<< endl)
+    ((_ << endl)
+     (newline)) 
+    ((_ << x)
+     (display x))
+    ((_ << endl rest ...)
+     (begin
+       (newline)
+       (cout rest ...)))
+    ((_ << x rest ...)
+     (begin
+       (display x)
+       (cout rest ...)))))
