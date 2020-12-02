@@ -48,12 +48,14 @@
   (cond
     ((< x 2) 0)
     ((equal? x 2) 1)
-    (else (+ (tribonachi-seq-naive (- x 1)) (tribonachi-seq-naive (- x 2)) (tribonachi-seq-naive (- x 3))))))
+    (else (+
+           (tribonachi-seq-naive (- x 1))
+           (tribonachi-seq-naive (- x 2))
+           (tribonachi-seq-naive (- x 3))))))
 
 (define (tribonachi-seq n)
-  (let
-      ((tribonachi-vector (make-vector (+ n 1) #f)))
-       (letrec ((tribonachi-seq-mem (lambda (x)
+  (let ((tribonachi-vector (make-vector (+ n 1) #f)))
+    (letrec ((tribonachi-seq-mem (lambda (x)
                                    (if (vector-ref tribonachi-vector x)
                                        (vector-ref tribonachi-vector x)
                                        (begin
@@ -66,7 +68,7 @@
                                                                (tribonachi-seq-mem (- x 2))
                                                                (tribonachi-seq-mem (- x 3))))))
                                          (tribonachi-seq-mem x))))))
-         (tribonachi-seq-mem n))))
+      (tribonachi-seq-mem n))))
 
 ;; == 4 : MY IF ========================================================
 
@@ -83,13 +85,49 @@
 (define-syntax my-let
   (syntax-rules ()
     ((_ ((var val) ...) body)
-      ((lambda (var ...) body) val ...))))
+     ((lambda (var ...) body) val ...))))
 
 (define-syntax my-let*
   (syntax-rules ()
-    ((my-let* () body ...)
-      ((lambda () body ...)))
-    ((my-let* ((var val) rest ...) body ...)
-      ((lambda (var) (my-let* (rest ...) body ...)) val))))
+    ((_ () body ...)
+     ((lambda () body ...)))
+    ((_ ((var val) rest ...) body ...)
+     ((lambda (var) (my-let* (rest ...) body ...)) val))))
 
 ;; == 6 : CONTROL CONSTRUCTIONS ========================================
+
+;; -- A : WHEN UNLESS --------------------------------------------------
+
+(define-syntax when
+  (syntax-rules ()
+    ((_ cond? exprs ...)
+     (if cond?
+         (begin exprs ...)))))
+
+(define-syntax unless
+  (syntax-rules ()
+    ((_ cond? exprs ...)
+     (when (not cond?) exprs ...))))
+
+;; -- B : FOR ----------------------------------------------------------
+
+(define-syntax for
+  (syntax-rules (as in)
+    ((_ x in xss exprs ...)
+         (letrec ((loop (lambda (xs)
+                          (if (pair? xs)
+                              (begin
+                                ((lambda (x) (begin exprs ...)) (car xs))
+                                (loop (cdr xs))
+                                )))))
+           (loop xss)))
+    ((_ xss as x exprs ...)
+         (for x in xss exprs ...))))
+
+
+
+
+
+
+
+
