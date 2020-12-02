@@ -69,12 +69,27 @@
          (tribonachi-seq-mem n))))
 
 ;; == 4 : MY IF ========================================================
+
 (define (my-if-func condition a b)
-  (and condition (set! b a))
-  (force b))
+  (or (and condition (force a)) (force b)))
 
 (define-syntax my-if
   (syntax-rules ()
     ((_ condition a b)
      (my-if-func condition (delay a) (delay b)))))
-  
+
+;; == 5 : MY LET =======================================================
+
+(define-syntax my-let
+  (syntax-rules ()
+    ((_ ((var val) ...) body)
+      ((lambda (var ...) body) val ...))))
+
+(define-syntax my-let*
+  (syntax-rules ()
+    ((my-let* () body ...)
+      ((lambda () body ...)))
+    ((my-let* ((var val) rest ...) body ...)
+      ((lambda (var) (my-let* (rest ...) body ...)) val))))
+
+;; == 6 : CONTROL CONSTRUCTIONS ========================================
