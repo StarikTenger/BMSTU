@@ -36,7 +36,11 @@
   (let ((symbol (read-char input-port)))
     (begin
       (+
-       (if (and (equal? symbol-prev #\linefeed) (not (equal? symbol #\return)) (not (eof-object? symbol))) 1 0)
+       (if (and
+            (equal? symbol-prev #\linefeed)
+            (not (equal? symbol #\return))
+            (not (equal? symbol #\linefeed))
+            (not (eof-object? symbol))) 1 0)
        (if (eof-object? symbol) 0 (calculate-strings-from-input-port input-port symbol))
        ))))
 
@@ -73,7 +77,8 @@
 ;; == 4 : MY IF ========================================================
 
 (define (my-if-func condition a b)
-  (or (and condition (force a)) (force b)))
+  (and condition (set! b a))
+  (force b))
 
 (define-syntax my-if
   (syntax-rules ()
