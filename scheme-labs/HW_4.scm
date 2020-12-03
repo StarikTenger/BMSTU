@@ -1,6 +1,7 @@
 (load "trace.scm")
 (load "unit-test.scm")
 (load "assert.scm")
+(load "LAB_4.scm")
 
 ;; == 1 : MEMORIZED FACTORIAL ==========================================
 
@@ -35,10 +36,10 @@
 
 (define (lazy-head xs k)
   (if (and (> k 0) (pair? xs))
-                  (cons
-                   (lazy-car xs)
-                   (lazy-head (lazy-cdr xs) (- k 1)))
-                  '()))
+      (cons
+       (lazy-car xs)
+       (lazy-head (lazy-cdr xs) (- k 1)))
+      '()))
 
 (define (lazy-ref xs k)
   (if (and (> k 0) (pair? xs))
@@ -55,4 +56,30 @@
 
 (define (lazy-factorial n)
   (lazy-ref (factorials 0 1) n))
+
+;; == 3 : STREAM =======================================================
+
+(define (read-words)
+  (letrec
+      ((space-symbol? (lambda (c)
+                        (equal? c #\space)))
+       (read-words-acc (lambda (word-list symbol-prev)
+                         (let ((symbol (read-char)))
+                           (if symbol-prev
+                               (if (eof-object? symbol)
+                                   word-list
+                                   (if (space-symbol? symbol)
+                                       (if (space-symbol? symbol-prev)
+                                           (read-words-acc word-list symbol)
+                                           (read-words-acc (cons (list) word-list) symbol))
+                                       (read-words-acc (cons (cons symbol (car word-list)) (cdr word-list)) symbol)))
+                               (if (space-symbol? symbol)
+                                   (read-words-acc (list (list)) symbol)
+                                   (read-words-acc  (list (list symbol))  symbol)))))))
+    (reverse (map list->string (map reverse (read-words-acc '() #f))))))
+
+
+
+
+
 
