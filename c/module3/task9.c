@@ -76,7 +76,6 @@ void Tree_fix_height(struct Node *node) {
 }
 
 struct Node *Tree_rotate_right(struct Node *node) {
-    printf("ROTATE RIGHT %d\n", node->key);
 	struct Node *child = node->left;
 	node->left = child->right;
 	child->right = node;
@@ -86,13 +85,11 @@ struct Node *Tree_rotate_right(struct Node *node) {
 }
 
 struct Node *Tree_rotate_left(struct Node *node) {
-    printf("ROTATE LEFT %d -> ", node->key);
 	struct Node *child = node->right;
 	node->right = child->left;
 	child->left = node;
 	Tree_fix_height(node);
 	Tree_fix_height(child);
-    printf("%d\n", child->key);
 	return child;
 }
 
@@ -104,7 +101,7 @@ struct Node *Tree_balance(struct Node *node) {
 		return Tree_rotate_left(node);
     }
     if (Tree_diff(node) == -2) {
-        if (Tree_diff(node->left) < 0 )
+        if (Tree_diff(node->left) > 0 )
 			node->left = Tree_rotate_left(node->left);
 		return Tree_rotate_right(node);
     }
@@ -225,13 +222,16 @@ int main() {
     const int IDENT = 3;
     int type = 0;
 
+    char line[16];
+    gets(line);
+
     int last_ident = 0;
 
     int symbol_prev = 0;
     for (int i = 0; i < n + 1; i++) {
         char symbol;
         if (i < n)
-            scanf("\n%c", &symbol);
+            scanf("%c", &symbol);
         else
             symbol = ' ';
         
@@ -254,7 +254,6 @@ int main() {
                     Tree_insert(&tree, Node_init(string_hash(word), last_ident++));
                 printf("IDENT %d\n", Tree_search(&tree, string_hash(word))->val);
             }
-            
             word_len = 0;
         }
         if (symbol != ' ') {
