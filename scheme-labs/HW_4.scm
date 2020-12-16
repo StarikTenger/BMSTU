@@ -78,8 +78,51 @@
                                    (read-words-acc  (list (list symbol))  symbol)))))))
     (reverse (map list->string (map reverse (read-words-acc '() #f))))))
 
+;; == 4 : STRUCTURES =================================================== 
 
+(define-syntax define-struct
+  (syntax-rules ()
+    ((_ name (fields ... ))
+     (begin
+       ; CONSTRUCTOR
+       (eval
+        (list 'define (list
+                       (string->symbol (string-append "make-" (symbol->string 'name)))
+                       'fields ...)
+              (list 'list
+                    (symbol->string 'name)
+                    (list 'map 'list
+                    (cons 'list (map symbol->string '(fields ...)))
+                    (cons 'list '(fields ...)))))
+        (interaction-environment))
+       ; PREDICATE
+       (eval
+        (list 'define (list
+                       (string->symbol (string-append (symbol->string 'name)  "?"))
+                       'struct)
+              (list 'and
+                    (list 'pair? 'struct)
+                    (list 'equal? (list 'car 'struct) (symbol->string 'name))))
+        (interaction-environment))
+       (let ((fields-stringed (map symbol->string '(fields ...))))
+         ; REF
+         (for field in fields-stringed
+           (eval
+            (list 'define (list
+                           (string->symbol (string-append (symbol->string 'name) "-" field))
+                           'struct)
+                  (list 'cadr (list 'assq field (list 'cadr 'struct))))
+            (interaction-environment)))
+         ; SET
+         (for field in fields-stringed
+           (eval
+            (list 'define (list
+                           (string->symbol (string-append "set-" (symbol->string 'name) "-" field "!"))
+                           'struct
+                           'val)
+                  (list 'set-car! (list 'cdr (list 'assq field (list 'cadr 'struct))) 'val))
+            (interaction-environment))))
+       ))))
 
-
-
-
+(define-struct test (a b))
+(define t (make-test 1 2))
