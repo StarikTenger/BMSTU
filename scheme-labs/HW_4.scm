@@ -92,8 +92,8 @@
               (list 'list
                     (symbol->string 'name)
                     (list 'map 'list
-                    (cons 'list (map symbol->string '(fields ...)))
-                    (cons 'list '(fields ...)))))
+                          (cons 'list (map symbol->string '(fields ...)))
+                          (cons 'list '(fields ...)))))
         (interaction-environment))
        ; PREDICATE
        (eval
@@ -121,8 +121,9 @@
                            'struct
                            'val)
                   (list 'set-car! (list 'cdr (list 'assq field (list 'cadr 'struct))) 'val))
-            (interaction-environment))))
-       ))))
+            (interaction-environment))))))))
 
 (define-struct test (a b))
-(define t (make-test 1 2))
+
+;; == 5 : ALGEBRAIC TYPES ==============================================
+
