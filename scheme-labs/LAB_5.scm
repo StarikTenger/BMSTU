@@ -34,6 +34,16 @@
                          (if (equal? (vector-ref program i) end) (set! balance (- balance 1)))
                          (if (equal? (vector-ref program i) beg) (set! balance (+ balance 1)))
                          (skip (+ 1 i) balance beg end)))))
+           (skip-if (lambda (i balance)
+                   (if (or
+                        (>= i (vector-length program))
+                        (= balance 0))
+                       (- i 1)
+                       (begin
+                         (if (equal? (vector-ref program i) 'endif) (set! balance (- balance 1)))
+                         (if (and (= balance 1) (equal? (vector-ref program i) 'else)) (set! balance (- balance 1)))
+                         (if (equal? (vector-ref program i) 'if) (set! balance (+ balance 1)))
+                         (skip-if (+ 1 i) balance)))))
            (interpret-symbol (lambda (i)                                              
                                (if (< i (vector-length program))
                                    (let ((symbol (vector-ref program i)))
@@ -64,8 +74,9 @@
                                        ((equal? symbol 'depth) (set! stack (cons (length stack) stack)))
                                        ; If
                                        ((equal? symbol 'if) (begin
-                                                              (if (not (true? (car stack))) (set! i (skip (+ 1 i) 1 'if 'endif)))
+                                                              (if (not (true? (car stack))) (set! i (skip-if (+ 1 i) 1)))
                                                               (set! stack (cdr stack))))
+                                       ((equal? symbol 'else) (set! i (skip-if (+ 1 i) 1)))
                                        ; Procedure
                                        ((equal? symbol 'define) (begin
                                                                   (set! i (+ 1 i))
@@ -168,7 +179,8 @@
                                       end 
                                       90 99 gcd 
                                       234 8100 gcd    ) '()) '(18 9))
-               
+               (test (interpret #(1 if 10 else -10 endif) '()) '(10))
+               (test (interpret #(0 if 10 else -10 endif) '()) '(-10))               
                ))
 
 (run-tests tests)
