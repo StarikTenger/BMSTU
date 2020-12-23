@@ -35,21 +35,23 @@
                          (if (equal? (vector-ref program i) beg) (set! balance (+ balance 1)))
                          (skip (+ 1 i) balance beg end)))))
            (skip-if (lambda (i balance)
-                   (if (or
-                        (>= i (vector-length program))
-                        (= balance 0))
-                       (- i 1)
-                       (begin
-                         (if (equal? (vector-ref program i) 'endif) (set! balance (- balance 1)))
-                         (if (and (= balance 1) (equal? (vector-ref program i) 'else)) (set! balance (- balance 1)))
-                         (if (equal? (vector-ref program i) 'if) (set! balance (+ balance 1)))
-                         (skip-if (+ 1 i) balance)))))
+                      (if (or
+                           (>= i (vector-length program))
+                           (= balance 0))
+                          (- i 1)
+                          (begin
+                            (if (equal? (vector-ref program i) 'endif) (set! balance (- balance 1)))
+                            (if (and (= balance 1) (equal? (vector-ref program i) 'else)) (set! balance (- balance 1)))
+                            (if (equal? (vector-ref program i) 'if) (set! balance (+ balance 1)))
+                            (skip-if (+ 1 i) balance)))))
            (interpret-symbol (lambda (i)                                              
                                (if (< i (vector-length program))
                                    (let ((symbol (vector-ref program i)))
                                      ;(cout << i << " " << stack << " => " << symbol << endl)
                                      (cond
+                                       ; Number
                                        ((number? symbol) (set! stack (cons symbol stack)))
+                                       
                                        ; Arithmetic
                                        ((equal? symbol '+) (set! stack (cons (+ (cadr stack) (car stack)) (cddr stack))))
                                        ((equal? symbol '-) (set! stack (cons (- (cadr stack) (car stack)) (cddr stack))))
@@ -57,14 +59,17 @@
                                        ((equal? symbol '/) (set! stack (cons (/ (cadr stack) (car stack)) (cddr stack))))
                                        ((equal? symbol 'mod) (set! stack (cons (remainder (cadr stack) (car stack)) (cddr stack))))
                                        ((equal? symbol 'neg) (set! stack (cons (- (car stack)) (cdr stack))))
+                                       
                                        ; Compare
                                        ((equal? symbol '=) (set! stack (cons (op= (cadr stack) (car stack)) (cddr stack))))
                                        ((equal? symbol '>) (set! stack (cons (op> (cadr stack) (car stack)) (cddr stack))))
                                        ((equal? symbol '<) (set! stack (cons (op< (cadr stack) (car stack)) (cddr stack))))
+                                       
                                        ; Logic
                                        ((equal? symbol 'not) (set! stack (cons (op-not (car stack)) (cdr stack))))
                                        ((equal? symbol 'and) (set! stack (cons (op-and (cadr stack) (car stack)) (cddr stack))))
                                        ((equal? symbol 'or) (set! stack (cons (op-or (cadr stack) (car stack)) (cddr stack))))
+                                       
                                        ; Stack operations
                                        ((equal? symbol 'drop) (set! stack (cdr stack)))
                                        ((equal? symbol 'swap) (set! stack (cons (cadr stack) (cons (car stack) (cddr stack)))))
@@ -72,11 +77,13 @@
                                        ((equal? symbol 'over) (set! stack (cons (cadr stack) stack)))
                                        ((equal? symbol 'rot) (set! stack (cons (caddr stack) (cons (cadr stack) (cons (car stack) (cdddr stack))))))
                                        ((equal? symbol 'depth) (set! stack (cons (length stack) stack)))
+                                       
                                        ; If
                                        ((equal? symbol 'if) (begin
                                                               (if (not (true? (car stack))) (set! i (skip-if (+ 1 i) 1)))
                                                               (set! stack (cdr stack))))
                                        ((equal? symbol 'else) (set! i (skip-if (+ 1 i) 1)))
+                                       
                                        ; Procedure
                                        ((equal? symbol 'define) (begin
                                                                   (set! i (+ 1 i))
