@@ -18,6 +18,8 @@
     symbol))
 (define (string->stream str)
   (make-stream (string->list (string-append str (string finish-symbol)))))
+(define (list->stream lst)
+  (make-stream (append lst (list finish-symbol))))
 
 ; <Token Seq> ::= <Token> <Token Seq> | finish-symbol
 ; <Token> ::= <Bracket> | <Operation> | <Number> | <Varaible>
@@ -35,19 +37,19 @@
            ; <Token Seq> ::= <Barrier> <Token> <Barrier> <Token Seq> | finish-symbol
            (scan-token-seq (lambda ()
                              (let* ((fin-symb (scan-finish-symbol))
-                                    (token (trace-ex (scan-token)))
+                                    (token (scan-token))
                                     (barrier1 (scan-barrier))
                                     (token-seq (and token (scan-token-seq)))
                                     (barrier2 (scan-barrier)))
-                             (if fin-symb
-                                 '()
-                                 (and token (cons token token-seq))))))
+                               (if fin-symb
+                                   '()
+                                   (and token (cons token token-seq))))))
            ; <Token> ::= <Bracket> | <Operation> | <Number> | <Varaible>
            (scan-token (lambda ()
                          (let* ((bracket  (scan-bracket))
-                               (operation (and (not bracket) (trace-ex (scan-operation))))
-                               (number    (and (not operation) (not bracket) (scan-number)))
-                               (varaible  (and (not bracket) (not operation) (not number)  (trace-ex (scan-varaible)))))
+                                (operation (and (not bracket) (scan-operation)))
+                                (number    (and (not operation) (not bracket) (scan-number)))
+                                (varaible  (and (not bracket) (not operation) (not number)  (scan-varaible))))
                            (or
                             bracket
                             (and operation (string->symbol (string operation)))
@@ -123,3 +125,131 @@
                ))
 
 (run-tests tests)
+
+; Expr    ::= Term Expr' .
+; Expr'   ::= AddOp Term Expr' | .
+; Term    ::= Factor Term' .
+; Term'   ::= MulOp Factor Term' | .
+; Factor  ::= Power Factor' .
+; Factor' ::= PowOp Power Factor' | .
+; Power   ::= value | "(" Expr ")" | unaryMinus Power .
+
+(define (parse str)
+  (letrec ((stream (list->stream str))
+           ; FinishedExpr ::= Expr finish-symbol
+           (scan-finished-expr (lambda ()
+                                 (let* ((expr (scan-expr))
+                                        (finish-symbol (scan-finish-symbol)))
+                                   (and expr finish-symbol
+                                        expr))))
+           ; finish-symbol
+           (scan-finish-symbol (lambda ()
+                                 (let ((symb (stream-peek stream)))
+                                   (and
+                                    (or (equal? symb finish-symbol))
+                                    (begin (string symb))))))
+           ; Expr    ::= Term Expr' .
+           (scan-expr (lambda ()
+                        (let* ((term (trace-ex (scan-term)))
+                               (expr- (and term (scan-expr- term))))
+                          (and term expr-))))
+           ; Expr'   ::= AddOp Term Expr' | .
+           (scan-expr- (lambda (term-prev)
+                         (let* ((add-op (scan-add-op))
+                                (term (and add-op (trace-ex (scan-term))))
+                                (expr- (and term (scan-expr- (list term-prev add-op term)))))
+                           (if (and add-op term)
+                               expr-
+                               term-prev))))
+           ; AddOp
+           (scan-add-op (lambda ()
+                          (let ((op (stream-peek stream)))
+                            (and (or (equal? op '+) (equal? op '-))
+                                 (begin (stream-next stream) op)))))
+           ; Term    ::= Factor Term' .
+           (scan-term (lambda ()
+                        (let* ((factor (scan-factor))
+                               (term- (and factor (scan-term- factor))))
+                          (and factor term-))))
+           ; Term'   ::= MulOp Factor Term' | .
+           (scan-term- (lambda (factor-prev)
+                         (let* ((mul-op (scan-mul-op))
+                                (factor (and mul-op (trace-ex (scan-factor))))
+                                (term- (and factor (scan-term- (list factor-prev mul-op factor)))))
+                           (if (and mul-op factor term-)
+                               term-
+                               factor-prev))))
+           ; MulOp
+           (scan-mul-op (lambda ()
+                          (let ((op (stream-peek stream)))
+                            (and (or (equal? op '*) (equal? op '/))
+                                 (begin (stream-next stream) op)))))
+           ; Factor  ::= Power Factor' .
+           (scan-factor (lambda ()
+                          (let* ((power (trace-ex (scan-power)))
+                                 (factor- (and power (trace-ex (scan-factor-)))))
+                            (and power factor-
+                                 (if (list? power)
+                                     (append power factor-)
+                                     (if (equal? factor- '())
+                                         power
+                                         (cons power factor-)))))))
+           ; Factor' ::= PowOp Power Factor' | .
+           (scan-factor- (lambda ()
+                           (let* ((pow-op (scan-pow-op))
+                                  (power (and pow-op (scan-power)))
+                                  (factor- (and power (scan-factor-))))
+                             (if (and pow-op power factor-)
+                                 (if (equal? factor- '())
+                                     (list pow-op power)
+                                     (list pow-op (cons power factor-)))
+                                 '()))))
+           ; PowOp
+           (scan-pow-op (lambda ()
+                          (let ((op (stream-peek stream)))
+                            (and (equal? op '^)
+                                 (begin (stream-next stream) op)))))
+           ; Power   ::= value | "(" Expr ")" | unaryMinus Power .
+           (scan-power (lambda ()
+                         (let* ( ; value
+                                (value (trace-ex (scan-value)))
+                                ; "(" Expr ")"
+                                (open-bracket (scan-open-bracket))
+                                (expr (and open-bracket (scan-expr)))
+                                (close-bracket (and expr (scan-close-bracket)))
+                                ; unaryMinus Power .
+                                (unary-minus (scan-unary-minus))
+                                (power (and unary-minus (scan-power))))
+                           (or
+                            value
+                            (and close-bracket expr)
+                            (and power (list unary-minus power))))))
+           ; Value
+           (scan-value (lambda ()
+                         (let ((num (stream-peek stream)))
+                           (and (number? num)
+                                (begin (stream-next stream) num)))))
+           ; OpenBracket
+           (scan-open-bracket (lambda ()
+                                (let ((op (stream-peek stream)))
+                                  (and (equal? op "(")
+                                       (begin (stream-next stream) op)))))
+           ; CloseBracket
+           (scan-close-bracket (lambda ()
+                                 (let ((op (stream-peek stream)))
+                                   (and (equal? op ")")
+                                        (begin (stream-next stream) op)))))
+           ; UnaryMinus
+           (scan-unary-minus (lambda ()
+                               (let ((op (stream-peek stream)))
+                                 (and (equal? op '-)
+                                      (begin (stream-next stream) op)))))
+           )
+    (scan-finished-expr)))
+
+
+
+
+
+
+
