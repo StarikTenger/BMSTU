@@ -126,6 +126,19 @@
                                               (set! stack (cdr stack)))
                                           (set! i (- (car return-stack) 1))                                          
                                           (set! return-stack (cdr return-stack))))
+                                       
+                                       ; Continue
+                                       ((or (equal? symbol 'continue))
+                                        (begin
+                                          (set! i (- (car return-stack) 1))
+                                          (set! return-stack (cdr return-stack))))
+
+                                       ; Break
+                                       ((or (equal? symbol 'break))
+                                        (begin
+                                          (set! stack (cons 0 (cdr stack)))
+                                          (set! i (- (car return-stack) 1))
+                                          (set! return-stack (cdr return-stack))))
                                        )
                                      (interpret-symbol (+ 1 i)))))))
     (begin
@@ -242,6 +255,8 @@
                                     swap 1 -
                                     endwhile)
                                 '()) '(15))
+               (test (interpret #(0 1 while swap 1 + swap dup 10 = if break endif 1 + endwhile) '()) '(10))
+               (test (interpret #(2 10 while 1 - dup 2 mod if continue endif swap 2 * swap endwhile) '()) '(64))
                ))
 
 (run-tests tests)
