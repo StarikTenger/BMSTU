@@ -21,6 +21,8 @@
 (define (list->stream lst)
   (make-stream (append lst (list finish-symbol))))
 
+;; == 1 : TOKENIZE =================================================
+
 ; <Token Seq> ::= <Token> <Token Seq> | finish-symbol
 ; <Token> ::= <Bracket> | <Operation> | <Number> | <Varaible>
 ; <Bracket> ::= ( | )
@@ -126,6 +128,9 @@
 
 (run-tests tests)
 
+;; == 2 : PARSE =====================================================
+;; == 3 : PARSE =====================================================
+
 ; Expr    ::= Term Expr' .
 ; Expr'   ::= AddOp Term Expr' | .
 ; Term    ::= Factor Term' .
@@ -155,7 +160,7 @@
                           (and term expr-))))
            ; Expr'   ::= AddOp Term Expr' | .
            (scan-expr- (lambda (term-prev)
-                         (let* ((add-op (scan-add-op))
+                         (let* ((add-op (trace-ex (scan-add-op)))
                                 (term (and add-op (trace-ex (scan-term))))
                                 (expr- (and term (scan-expr- (list term-prev add-op term)))))
                            (if (and add-op term)
@@ -218,7 +223,7 @@
                                 (expr (and open-bracket (scan-expr)))
                                 (close-bracket (and expr (scan-close-bracket)))
                                 ; unaryMinus Power .
-                                (unary-minus (scan-unary-minus))
+                                (unary-minus (and (not value) (scan-unary-minus)))
                                 (power (and unary-minus (scan-power))))
                            (or
                             value
@@ -226,9 +231,12 @@
                             (and power (list unary-minus power))))))
            ; Value
            (scan-value (lambda ()
-                         (let ((num (stream-peek stream)))
-                           (and (number? num)
-                                (begin (stream-next stream) num)))))
+                         (let ((val (stream-peek stream)))
+                           (or
+                            (and (symbol? val) (not (equal? val '-))
+                                 (begin (stream-next stream) val))
+                            (and (number? val)
+                                 (begin (stream-next stream) val))))))
            ; OpenBracket
            (scan-open-bracket (lambda ()
                                 (let ((op (stream-peek stream)))
@@ -247,9 +255,38 @@
            )
     (scan-finished-expr)))
 
+; Unit tests
 
+(define tests (list
+               (test (parse (tokenize "(a - 1)/(b + 1)")) '((a - 1) / (b + 1)))
+               (test (parse (tokenize "a/b/c/d")) '(((a / b) / c) / d))
+               (test (parse (tokenize "a^b^c^d")) '(a ^ (b ^ (c ^ d))))
+               (test (parse (tokenize "a/(b/c)")) '(a / (b / c)))
+               (test (parse (tokenize "a + b/c^2 - d")) '((a + (b / (c ^ 2))) - d))
+               (test (parse (tokenize "a ^ -b")) '(a ^ (- b)))))
 
+(run-tests tests)
 
+;; == 3 : TREE TO SCHEME ===========================================
 
+(define (tree->scheme lst)
+  (if (list? lst)
+      (let* ((a (tree->scheme (car lst)))
+             (b (tree->scheme (cadr lst)))
+             (c (and (equal? (length lst) 3) (tree->scheme  (caddr lst)))))
+        (if c
+            (list b a c)
+            (list a b)))
+      (if (equal? lst '^)
+          'expt
+          lst)))
 
+; Unit tests
 
+(define tests (list
+               (test (tree->scheme (parse (tokenize "x^(a + 1)"))) '(expt x (+ a 1)))
+               (test (tree->scheme (parse (tokenize "-a"))) '(- a))
+               (test (eval (tree->scheme (parse (tokenize "2^2^2^2"))) (interaction-environment)) 65536)
+               ))
+
+(run-tests tests)
