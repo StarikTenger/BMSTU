@@ -44,7 +44,7 @@
                             (if (and (= balance 1) (equal? (vector-ref program i) 'else)) (set! balance (- balance 1)))
                             (if (equal? (vector-ref program i) 'if) (set! balance (+ balance 1)))
                             (skip-if (+ 1 i) balance)))))
-           (interpret-symbol (lambda (i)                                              
+           (interpret-symbol (lambda (i)                                             
                                (if (< i (vector-length program))
                                    (let ((symbol (vector-ref program i)))
                                      ;(cout << i << " " << stack << " => " << symbol << endl)
@@ -92,9 +92,40 @@
                                        ((assq symbol words) (begin
                                                               (set! return-stack (cons i return-stack))
                                                               (set! i (cadr (assq symbol words)))))
-                                       ((or (equal? symbol 'end) (equal? symbol 'exit)) (begin
-                                                                                          (set! i (car return-stack))
-                                                                                          (set! return-stack (cdr return-stack))))
+                                       ((or (equal? symbol 'end) (equal? symbol 'exit))
+                                        (begin
+                                          (set! i (car return-stack))
+                                          (set! return-stack (cdr return-stack))))
+                                       
+                                       ; While
+                                       ((equal? symbol 'while) (begin
+                                                                 (if (not (true? (car stack)))
+                                                                     (begin
+                                                                       (set! i (+ 0 (skip (+ 1 i) 1 'while 'endwhile)))
+                                                                       (set! stack (cdr stack)))
+                                                                     (begin
+                                                                       (set! return-stack (cons i return-stack))))))
+                                       ((or (equal? symbol 'endwhile))
+                                        (begin
+                                          (set! i (- (car return-stack) 1))
+                                          (set! return-stack (cdr return-stack))))
+
+                                       ; Until
+                                       ((equal? symbol 'until) (begin
+                                                                 (if (not (true? (car stack)))
+                                                                     (begin
+                                                                       (set! return-stack
+                                                                             (cons
+                                                                              (+ 1 (skip (+ 1 i) 1 'until 'enduntil))
+                                                                              return-stack)))
+                                                                     (begin
+                                                                       (set! return-stack (cons i return-stack))))))
+                                       ((or (equal? symbol 'enduntil))
+                                        (begin
+                                          (if (equal? i (- (car return-stack) 1))
+                                              (set! stack (cdr stack)))
+                                          (set! i (- (car return-stack) 1))                                          
+                                          (set! return-stack (cdr return-stack))))
                                        )
                                      (interpret-symbol (+ 1 i)))))))
     (begin
@@ -187,7 +218,30 @@
                                       90 99 gcd 
                                       234 8100 gcd    ) '()) '(18 9))
                (test (interpret #(1 if 10 else -10 endif) '()) '(10))
-               (test (interpret #(0 if 10 else -10 endif) '()) '(-10))               
+               (test (interpret #(0 if 10 else -10 endif) '()) '(-10))
+               (test (interpret #(5 while 1 swap 1 - endwhile) '()) '(1 1 1 1 1))
+               (test (interpret #(define fact
+                                   1 1 rot
+                                   1 -
+                                   while
+                                   rot 1 + dup rot * swap rot 1 -
+                                   endwhile
+                                   swap drop
+                                   end
+                                   3 fact
+                                   5 fact
+                                   7 fact
+                                   1 fact) '())
+                     '(1 5040 120 6))
+               (test (interpret #(3 until 1 swap 1 - enduntil) '()) '(1 1 1 1))
+               (test (interpret #(0 3
+                                    while
+                                    swap 5
+                                    while swap 1 + swap 1 -
+                                    endwhile
+                                    swap 1 -
+                                    endwhile)
+                                '()) '(15))
                ))
 
 (run-tests tests)
