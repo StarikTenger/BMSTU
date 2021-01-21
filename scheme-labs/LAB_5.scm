@@ -3,6 +3,17 @@
 (load "assert.scm")
 (load "LAB_4.scm")
 
+; == АЧИВКИ ==================================================+
+; 1. Else (сдано вместе с лабораторной)                       |
+; 2. Вложенный if (сдано вместе с лабораторной)               |
+; 3. Циклы while (с предусловием) и until (с постусловием)    |
+; 4. Break/continue                                           |
+; 5. switch-case                                              |
+; 6. lambda-функции, ковенный вызов (реализован командой do)  |
+; 7. Хвостовая рекурсия (реализуется через оператор continue) |
+; 8. Глобальные переменные                                    |
+; ============================================================+
+
 ;; Some operations
 (define (op= a b)
   (if (= a b) -1 0))
@@ -92,23 +103,29 @@
                                        ((equal? symbol 'depth) (set! stack (cons (length stack) stack)))
                                        
                                        ; If
-                                       ((equal? symbol 'if) (begin
-                                                              (if (not (true? (car stack))) (set! i (skip-if (+ 1 i) 1)))
-                                                              (set! stack (cdr stack))))
+                                       ((equal? symbol 'if)
+                                        (begin
+                                          (if (not (true? (car stack))) (set! i (skip-if (+ 1 i) 1)))
+                                          (set! stack (cdr stack))))
                                        ((equal? symbol 'else) (set! i (skip-if (+ 1 i) 1)))
                                        
                                        ; Procedure
-                                       ((equal? symbol 'define) (begin
-                                                                  (set! i (+ 1 i))
-                                                                  (set! words (cons (list (vector-ref program i) i) words))
-                                                                  (set! i (skip (+ 1 i) 1 'define 'end))))
-                                       ((assq symbol words) (begin
-                                                              (set! return-stack (cons i return-stack))
-                                                              (set! i (cadr (assq symbol words)))))
-                                       ((or (equal? symbol 'end) (equal? symbol 'exit))
+                                       ((equal? symbol 'define)
+                                        (begin
+                                          (set! i (+ 1 i))
+                                          (set! words (cons (list (vector-ref program i) i) words))
+                                          (set! i (skip (+ 1 i) 1 'define 'end))))
+                                       ((assq symbol words)
+                                        (begin
+                                          (set! return-stack (cons i return-stack))
+                                          (set! i (cadr (assq symbol words)))))
+                                       ((or (equal? symbol 'end) (equal? symbol 'exit) (equal? symbol 'endlambda))
                                         (begin
                                           (set! i (car return-stack))
-                                          (set! return-stack (cdr return-stack))))
+                                          (set! return-stack (cdr return-stack))
+                                          (if (equal? symbol 'endlambda)
+                                              (begin (set! i (car return-stack))
+                                                     (set! return-stack (cdr return-stack))))))
                                        
                                        ; While
                                        ((equal? symbol 'while) (begin
@@ -146,7 +163,8 @@
                                           (set! i (- (car return-stack) 1))
                                           (if (equal? (vector-ref program i) 'enduntil)
                                               (set! stack (cdr stack)))
-                                          (set! return-stack (cdr return-stack))))
+                                          (if (not (equal? (vector-ref program i) 'lambda))
+                                              (set! return-stack (cdr return-stack)))))
 
                                        ; Break
                                        ((or (equal? symbol 'break))
@@ -173,6 +191,19 @@
                                        ((assq symbol varaibles)
                                         (begin
                                           (set! stack (cons (cadr (assq symbol varaibles)) stack))))
+
+                                       ; Lambda
+                                       ((equal? symbol 'lambda)
+                                        (begin
+                                          (set! stack (cons (list (+ i 0)) stack))
+                                          (set! i (skip (+ 1 i) 1 'lambda 'endlambda))))
+                                       ((equal? symbol 'do)
+                                        (begin
+                                          (set! return-stack (cons i return-stack))
+                                          (set! i (caar stack))
+                                          (set! return-stack (cons (+ i 1) return-stack))
+                                          (set! stack (cdr stack))
+                                          ))
                                        )
                                      (interpret-symbol (+ 1 i)))))))
     (begin
@@ -182,6 +213,7 @@
 
 ;; Unit-testing
 (define tests (list
+               ; Простейшие тесты
                (test (interpret #(2 3 * 4 5 * +) '()) '(26))
                (test (interpret #(neg) '(1)) '(-1))
                (test (interpret #(10 2 /) '()) '(5))
@@ -200,6 +232,7 @@
                (test (interpret #(1 dup if dup dup if 5 endif endif 3) '()) '(3 5 1 1))
                (test (interpret #(0 dup if dup dup if 5 endif endif 3) '()) '(3 0))
                (test (interpret #(define test 1 2 3 end 0 test 0) '()) '(0 3 2 1 0))
+               ; Несколько тестов из условия
                (test (interpret #(   define abs 
                                       dup 0 < 
                                       if neg endif 
@@ -264,8 +297,10 @@
                                       end 
                                       90 99 gcd 
                                       234 8100 gcd    ) '()) '(18 9))
+               ; if-else
                (test (interpret #(1 if 10 else -10 endif) '()) '(10))
                (test (interpret #(0 if 10 else -10 endif) '()) '(-10))
+               ; Циклы
                (test (interpret #(5 while 1 swap 1 - endwhile) '()) '(1 1 1 1 1))
                (test (interpret #(define fact
                                    1 1 rot
@@ -281,6 +316,7 @@
                                    1 fact) '())
                      '(1 5040 120 6))
                (test (interpret #(3 until 1 swap 1 - enduntil) '()) '(1 1 1 1))
+               ; Вложенные циклы
                (test (interpret #(0 3
                                     while
                                     swap 5
@@ -289,14 +325,17 @@
                                     swap 1 -
                                     endwhile)
                                 '()) '(15))
+               ; Операторы break/continue
                (test (interpret #(0 1 while swap 1 + swap dup 10 = if break endif 1 + endwhile) '()) '(10))
                (test (interpret #(2 10 while 1 - dup 2 mod if continue endif swap 2 * swap endwhile) '()) '(64))
                (test (interpret #(2 10 until 1 - dup 2 mod if continue endif swap 2 * swap enduntil) '()) '(64))
                (test (interpret #(2 8 while 1 - dup 2 mod not if continue endif swap 2 * swap endwhile) '()) '(32))
                (test (interpret #(2 8 until 1 - dup 2 mod not if continue endif swap 2 * swap enduntil) '()) '(64))
+               ; Конструкция switch-case
                (test (interpret #(1 switch case 1 11 endcase case 2 22 endcase case 3 33 endcase endswitch) '()) '(11))
                (test (interpret #(2 switch case 1 11 endcase case 2 22 endcase case 3 33 endcase endswitch) '()) '(22))
                (test (interpret #(3 switch case 1 11 endcase case 2 22 endcase case 3 33 endcase endswitch) '()) '(33))
+               ; Вложенный switch
                (test (interpret #(dup 3 mod
                                       switch
                                       case 0 0 endcase
@@ -317,6 +356,7 @@
                                       endswitch
                                       endswitch
                                       ) '(2)) '(0))
+               ; Глобальные переменные
                (test (interpret #(3 var a 4 var b a b *) '()) '(12))
                (test (interpret #(1 var prod
                                     1 var i
@@ -328,6 +368,30 @@
                                     check
                                     endwhile
                                     prod) '()) '(120))
+               ; Демонстрация хвостовой рекурсии
+               (test (interpret #(define f dup if drop f endif end f) '(1 1 1 1 0 1  1 1 0)) '(0 1 1 1 0))
+               (test (interpret #(define f dup if drop continue endif end f) '(1 1 1 1 0 1  1 1 0)) '(0 1 1 1 0))
+               (test (interpret #(define fact
+                1 1
+                lambda
+                rot 1 -
+                dup
+                if
+                rot
+                swap 1 +
+                dup rot *
+                continue
+                endif
+                endlambda
+                do
+                drop drop
+                end
+                5 fact
+                6 fact
+                8 fact) '()) '(40320 720 120))
+               ; Lambda-функции
+               (test (interpret #(lambda 1 endlambda do) '()) '(1))
+               (test (interpret #(define f lambda 1 endlambda end f f do swap do) '()) '(1 1))
                ))
 
 (run-tests tests)
