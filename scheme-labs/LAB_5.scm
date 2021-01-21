@@ -25,6 +25,7 @@
   (letrec (
            (return-stack '())
            (words '())
+           (varaibles '())
            (skip (lambda (i balance beg end)
                    (if (or
                         (>= i (vector-length program))
@@ -162,6 +163,16 @@
                                           ))
                                        ((equal? symbol 'endcase)
                                         (set! i (skip (+ i 1) 1 'switch 'endswitch)))
+
+                                       ; Varaibles
+                                       ((equal? symbol 'var)
+                                        (begin
+                                          (set! i (+ 1 i))
+                                          (set! varaibles (cons (list (vector-ref program i) (car stack)) varaibles))
+                                          (set! stack (cdr stack))))
+                                       ((assq symbol varaibles)
+                                        (begin
+                                          (set! stack (cons (cadr (assq symbol varaibles)) stack))))
                                        )
                                      (interpret-symbol (+ 1 i)))))))
     (begin
@@ -306,6 +317,17 @@
                                       endswitch
                                       endswitch
                                       ) '(2)) '(0))
+               (test (interpret #(3 var a 4 var b a b *) '()) '(12))
+               (test (interpret #(1 var prod
+                                    1 var i
+                                    5 var max
+                                    define check i max > not end
+                                    check while drop
+                                    prod i * var prod
+                                    i 1 + var i
+                                    check
+                                    endwhile
+                                    prod) '()) '(120))
                ))
 
 (run-tests tests)
