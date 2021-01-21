@@ -44,6 +44,18 @@
                             (if (and (= balance 1) (equal? (vector-ref program i) 'else)) (set! balance (- balance 1)))
                             (if (equal? (vector-ref program i) 'if) (set! balance (+ balance 1)))
                             (skip-if (+ 1 i) balance)))))
+           (skip-switch (lambda (i case)
+                          (if (>= i (vector-length program))
+                              (- i 1)
+                              (if (or (equal? (vector-ref program i) 'endswitch)
+                                      (and (equal? (vector-ref program i) 'case)
+                                           (equal? (vector-ref program (+ i 1)) case)))
+                                  (if (equal? (vector-ref program i) 'endswitch)
+                                      i
+                                      (+ 1 i))
+                                  (if (equal? (vector-ref program i) 'switch)
+                                      ( + 1 (skip (+ 1 i) 1 'switch 'endswitch))
+                                      (skip-switch (+ 1 i) case))))))
            (interpret-symbol (lambda (i)                                             
                                (if (< i (vector-length program))
                                    (let ((symbol (vector-ref program i)))
@@ -131,6 +143,8 @@
                                        ((or (equal? symbol 'continue))
                                         (begin
                                           (set! i (- (car return-stack) 1))
+                                          (if (equal? (vector-ref program i) 'enduntil)
+                                              (set! stack (cdr stack)))
                                           (set! return-stack (cdr return-stack))))
 
                                        ; Break
@@ -139,6 +153,15 @@
                                           (set! stack (cons 0 (cdr stack)))
                                           (set! i (- (car return-stack) 1))
                                           (set! return-stack (cdr return-stack))))
+
+                                       ; Switch
+                                       ((equal? symbol 'switch)
+                                        (begin
+                                          (set! i (skip-switch (+ i 1) (car stack)))
+                                          (set! stack (cdr stack))
+                                          ))
+                                       ((equal? symbol 'endcase)
+                                        (set! i (skip (+ i 1) 1 'switch 'endswitch)))
                                        )
                                      (interpret-symbol (+ 1 i)))))))
     (begin
@@ -257,6 +280,32 @@
                                 '()) '(15))
                (test (interpret #(0 1 while swap 1 + swap dup 10 = if break endif 1 + endwhile) '()) '(10))
                (test (interpret #(2 10 while 1 - dup 2 mod if continue endif swap 2 * swap endwhile) '()) '(64))
+               (test (interpret #(2 10 until 1 - dup 2 mod if continue endif swap 2 * swap enduntil) '()) '(64))
+               (test (interpret #(2 8 while 1 - dup 2 mod not if continue endif swap 2 * swap endwhile) '()) '(32))
+               (test (interpret #(2 8 until 1 - dup 2 mod not if continue endif swap 2 * swap enduntil) '()) '(64))
+               (test (interpret #(1 switch case 1 11 endcase case 2 22 endcase case 3 33 endcase endswitch) '()) '(11))
+               (test (interpret #(2 switch case 1 11 endcase case 2 22 endcase case 3 33 endcase endswitch) '()) '(22))
+               (test (interpret #(3 switch case 1 11 endcase case 2 22 endcase case 3 33 endcase endswitch) '()) '(33))
+               (test (interpret #(dup 3 mod
+                                      switch
+                                      case 0 0 endcase
+                                      case 1 1 endcase
+                                      case 2
+                                      switch
+                                      case 2 0 endcase
+                                      endswitch
+                                      endswitch
+                                      ) '(17)) '())
+               (test (interpret #(dup 3 mod
+                                      switch
+                                      case 0 0 endcase
+                                      case 1 1 endcase
+                                      case 2
+                                      switch
+                                      case 2 0 endcase
+                                      endswitch
+                                      endswitch
+                                      ) '(2)) '(0))
                ))
 
 (run-tests tests)
