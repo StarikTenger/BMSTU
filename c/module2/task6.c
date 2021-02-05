@@ -59,12 +59,6 @@ void hsort(void *base, size_t nel, size_t width, int (*compare)(const void *a, c
         swap(base, width, 0, i);
         heapify(base, i, width, compare, 0);
     }
-    /*for (int i = 0; i < nel; i++) {
-        for (int j = i + 1; j < nel; j++) {
-            if (compare(base + j * width, base + i * width) == -1)
-                swap(base, width, i, j);
-        }
-    }*/
 }
 
 int main() {

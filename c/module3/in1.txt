@@ -1,0 +1,11 @@
+10
+INSERT soviet
+INSERT space
+INSERT southern
+INSERT spanish
+INSERT spare
+INSERT sovereignty
+INSERT southwest
+DELETE space
+PREFIX sp
+PREFIX spa
