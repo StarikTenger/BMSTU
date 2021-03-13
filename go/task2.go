@@ -27,6 +27,14 @@ func qsort(left int, right int,
 	}
 } 
 
+func concat(a, b int) int {
+	digits := 1
+	for _a := b; _a > 0; _a /= 10{
+		digits *= 10
+	}
+	return a * digits + b
+}
+
 func main() {
 	var n int
 	fmt.Scanf("%d %d", &n);
@@ -38,7 +46,7 @@ func main() {
 	}
 
   	less := func(i, j int) bool {
-		return arr[i] < arr[j]
+		return concat(arr[i], arr[j]) > concat(arr[j], arr[i])
 	}
 
 	swap := func(i, j int) {
@@ -48,6 +56,6 @@ func main() {
 	qsort(0, n, less, swap)
 
 	for i := 0; i < n; i++ {
-		fmt.Printf("%d ", arr[i])
+		fmt.Printf("%d", arr[i])
 	}
 }
