@@ -1,17 +1,31 @@
 public class Particle {
-    private float mass = 0;
+    private double mass = 0;
+    private Vec3 pos = new Vec3();
 
     public Particle() {}
 
-    public Particle(float mass) {
+    public Particle(Vec3 pos) {
+        this.pos = pos;
+    }
+
+    public Particle(Vec3 pos, double mass) {
+        this.pos = pos;
         this.mass = mass;
     }
 
-    public float getMass() {
+    public double getMass() {
         return mass;
     }
 
-    public void setMass(float mass) {
+    public void setMass(double mass) {
         this.mass = mass;
+    }
+
+    public Vec3 getPos() {
+        return pos;
+    }
+
+    public void setPos(Vec3 pos) {
+        this.pos = pos;
     }
 }
