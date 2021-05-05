@@ -44,8 +44,8 @@ public:
 };
 
 int main() {
-	Number<3, 10> a({ 2, 2, 2, 2 });
-	Number<3, 10> b({ 1 });
+	Number<10, 10> a({ 2, 2, 2, 2 });
+	Number<10, 10> b({ 1 });
 	a.display();
 	b.display();
 	(a + b).display();

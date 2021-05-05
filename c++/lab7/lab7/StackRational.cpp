@@ -3,7 +3,7 @@
 
 void StackRational::expand() {
 	Cell* data_new = new Cell[max_len * 2];
-	std::memmove(data, data_new, max_len);
+	std::memmove(data_new, data, max_len * sizeof(Cell));
 	max_len *= 2;
 	delete data;
 	data = data_new;
@@ -12,6 +12,10 @@ void StackRational::expand() {
 StackRational::StackRational(int _max_len) {
 	max_len = _max_len;
 	data = new Cell[max_len];
+}
+
+StackRational::~StackRational() {
+	delete data;
 }
 
 Rational StackRational::top() {
@@ -45,5 +49,4 @@ void StackRational::pop() {
 Rational StackRational::operator[](int i) {
 	return data[len - i - 1].val;
 }
-
 

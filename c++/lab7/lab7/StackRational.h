@@ -9,12 +9,13 @@ private:
 	};
 
 	Cell* data;
-	int max_len = 8;
+	int max_len = 1;
 	int len = 0;
 
 	void expand();
 public:
-	StackRational(int _max_len = 8);
+	StackRational(int _max_len = 1);
+	~StackRational();
 	
 	Rational top();
 	Rational min();
