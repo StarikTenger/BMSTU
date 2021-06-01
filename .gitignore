@@ -365,3 +365,5 @@ FodyWeavers.xsd
 .vs/
 *.bak
 *.caffemodel
+go/*in.txt
+go/*out.txt

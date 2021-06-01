@@ -1,9 +1,0 @@
-graph {
-0
-1
-2 [color = red]
-3 [color = red]
-0 -- 1
-2 -- 3 [color = red]
-2 -- 3 [color = red]
-}
