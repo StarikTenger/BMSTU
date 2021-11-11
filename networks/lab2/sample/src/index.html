@@ -1,0 +1,32 @@
+<head>
+    <meta charset="utf-8">
+    <title>Новости с http://jolt.law.harvard.edu/digest</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+
+<body>
+    <header>
+    </header>
+
+    <body>
+        <section class="cards">
+        {{range .}}
+        <article class="card card--1">
+            <a href="{{.Ref}}" class="card_link">
+                <div class="card__info">
+                    <!-- <span class="card__category"> Новости</span> -->
+                    <h3 class="card__title">
+                        {{.Title}}
+                    </h3>
+                </div>
+            </a>
+            <div class="card__info-hover">
+                <div class="card__clock-info">
+                    <img src = "{{ .Time}}">
+                </div>
+            </div>
+        </article>
+        {{end}}
+        </section>
+    </body>
+</body>
