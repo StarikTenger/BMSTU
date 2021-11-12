@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script>  
+window.addEventListener("load", function(evt) {
+    var output = document.getElementById("output");
+    var input = document.getElementById("input");
+	var number = document.getElementById("number");
+    var ws;
+    var print = function(message) {
+        var d = document.createElement("div");
+        d.textContent = message;
+        output.appendChild(d);
+        output.scroll(0, output.scrollHeight);
+    };
+    document.getElementById("open").onclick = function(evt) {
+        console.log(1);
+        if (ws) {
+            return false;
+        }
+        ws = new WebSocket("ws://localhost:8080");
+        ws.onopen = function(evt) {
+            print("OPEN");
+        }
+        ws.onclose = function(evt) {
+            print("CLOSE");
+            ws = null;
+        }
+        ws.onmessage = function(evt) {
+            print(evt.data);
+        }
+        ws.onerror = function(evt) {
+            print("ERROR: " + evt.data);
+        }
+        return false;
+    };
+    document.getElementById("ping").onclick = function(evt) {
+        if (!ws) {
+            return false;
+        }
+        print("ping "+input.value+" "+number.value);
+        ws.send("ping,"+input.value+","+number.value);
+        return false;
+    };
+	document.getElementById("trace").onclick = function(evt) {
+        if (!ws) {
+            return false;
+        }
+        print("trace "+input.value);
+        ws.send("trace,"+input.value);
+        return false;
+    };
+    document.getElementById("close").onclick = function(evt) {
+        if (!ws) {
+            return false;
+        }
+        ws.close();
+        return false;
+    };
+});
+</script>
+</head>
+<body>
+<table>
+<tr><td valign="top" width="50%">
+<form>
+<button id="open">Open</button>
+<button id="close">Close</button>
+<p><input id="input" type="text" value="ya.ru">
+<input id="number" type="number" name="t" value="2" min="0" max="9999" step="1">
+<button id="ping">Ping</button>
+<button id="trace">Trace</button>
+</form>
+<div id="output" style="max-height: 70vh;overflow-y: scroll;"></div>
+</td><td valign="top" width="50%">
+</td></tr></table>
+</body>
+</html>
