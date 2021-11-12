@@ -60,17 +60,38 @@ window.addEventListener("load", function(evt) {
     };
 });
 </script>
+<style>
+    button {
+        width: 200%;
+        height: 30px;
+        margin: 3px;
+    }
+    input {
+        width: 200%;
+        margin: 3px;
+    }
+    text {
+        width: 200%;
+        margin: 3px;
+    }
+    div {
+        width: 200%;
+        margin: 3px;
+    }
+</style>
 </head>
 <body>
 <table>
 <tr><td valign="top" width="50%">
 <form>
-<button id="open">Open</button>
-<button id="close">Close</button>
-<p><input id="input" type="text" value="ya.ru">
-<input id="number" type="number" name="t" value="2" min="0" max="9999" step="1">
-<button id="ping">Ping</button>
-<button id="trace">Trace</button>
+    <button id="open">Open conncection</button> <br/>
+    <button id="close">Close conncection</button> <br/>
+    <text>Host</text> <br/>
+    <input id="input" type="text" value="ya.ru"> <br/>
+    <text>Number of packages (for ping)</text> <br/>
+    <input id="number" type="number" name="t" value="2" min="0" max="9999" step="1"> <br/>
+    <button id="ping">Ping</button>
+    <button id="trace">Trace</button>
 </form>
 <div id="output" style="max-height: 70vh;overflow-y: scroll;"></div>
 </td><td valign="top" width="50%">
