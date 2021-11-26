@@ -4,10 +4,11 @@ import (
 	"flag"
 	"fmt"
 	"github.com/mgutz/logxi/v1"
-	"math/rand"
+	//"math/rand"
 	"net"
 	"os"
 	"strconv"
+	"encoding/json"
 )
 
 
@@ -31,9 +32,26 @@ func main() {
 	} else {
 		defer conn.Close()
 		for i := uint(0); i < n; i++ {
-			x := rand.Intn(1000)
-			send(conn, string(strconv.Itoa(x)))
+			x := 3
+			send(conn, string(strconv.Itoa(x)) + " foo")
 		}
-		for {}
+		
+		// Receiving
+		for {
+			buff := make([]byte, 1024)
+			if bytesRead, addr, err := conn.ReadFromUDP(buff); err != nil {
+				log.Error("receiving message from client", "error", err)
+			} else {
+				var message Message;
+				err := json.Unmarshal(buff[:bytesRead], &message)
+				if err == nil {
+					log.Info("JSON decoded", "Id", message.Id, "Content", message.Content)
+					messageEncoded, _ := json.Marshal(Message{message.Id, message.Content})
+					conn.WriteToUDP([]byte(messageEncoded), addr)
+				} else {
+					log.Error("decoding message from server", "error", err)
+				}
+			}
+		}
 	}
 }

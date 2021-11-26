@@ -46,7 +46,7 @@ func send(conn *net.UDPConn, message string) {
 	isReceived := false
 	var delay int64 = 10
 	time := makeTimestamp() - delay
-	for {
+	for i := 0; i < 100; i++ {
 		if isReceived {break}
 		if makeTimestamp() - time >= delay {
 			time = makeTimestamp()

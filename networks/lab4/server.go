@@ -7,9 +7,29 @@ import (
 	"net"
 	"os"
 	"encoding/json"
+	"time"
 )
 
+func parseMessage(m string) (timer int, text string) {
+	num := 0
+	pwr := 1
+	i := 0
+	for ; i < len(m); i++ {
+		if m[i] >= 48 && m[i] < 58 {
+			num += int(m[i] - 48) * pwr
+		} else {break}
+		pwr *= 10
+	}
+	return num, m[i:]
+}
 
+func action(addr *net.UDPAddr, m string) {
+	timer, text := parseMessage(m)
+	time.Sleep(time.Duration(timer) * time.Second)
+	//time := makeTimestamp()
+	connNew, _ := net.DialUDP("udp", nil, addr)
+	send(connNew, text)
+}
 
 func main() {
 	var (
@@ -28,8 +48,8 @@ func main() {
 		log.Error("creating listening connection", "error", err)
 	} else {
 		log.Info("server listens incoming messages from clients")
-		buff := make([]byte, 1024)
 		for {
+			buff := make([]byte, 1024)
 			if bytesRead, addr, err := conn.ReadFromUDP(buff); err != nil {
 				log.Error("receiving message from client", "error", err)
 			} else {
@@ -39,6 +59,7 @@ func main() {
 					log.Info("JSON decoded", "Id", message.Id, "Content", message.Content)
 					messageEncoded, _ := json.Marshal(Message{message.Id, message.Content})
 					conn.WriteToUDP([]byte(messageEncoded), addr)
+					go action(addr, message.Content)
 				} else {
 					log.Error("decoding message from client", "error", err)
 				}
