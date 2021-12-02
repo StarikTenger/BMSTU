@@ -7,7 +7,7 @@ import (
 	"net"
 	"os"
 	"encoding/json"
-	"time"
+	//"time"
 )
 
 func parseMessage(m string) (timer int, text string) {
@@ -23,12 +23,17 @@ func parseMessage(m string) (timer int, text string) {
 	return num, m[i:]
 }
 
-func action(addr *net.UDPAddr, m string) {
+func action(conn *net.UDPConn, addr *net.UDPAddr, m string) {
+	// Initialising timer
 	timer, text := parseMessage(m)
-	time.Sleep(time.Duration(timer) * time.Second)
-	//time := makeTimestamp()
-	connNew, _ := net.DialUDP("udp", nil, addr)
-	send(connNew, text)
+	time := makeTimestamp()
+	// Waiting
+	fmt.Println("biba", makeTimestamp())
+	for;makeTimestamp() - time < int64(timer  * 1000);{}
+	fmt.Println("boba", makeTimestamp())
+	// Making new connection
+	connNew, _ := net.DialUDP("udp", nil, addr)	
+	send(connNew, addr, text + " :-)", false)
 }
 
 func main() {
@@ -36,6 +41,9 @@ func main() {
 		serverAddrStr string
 		helpFlag      bool
 	)
+	initProtocol()
+	usedIds := make(map[int]bool)
+
 	flag.StringVar(&serverAddrStr, "addr", "127.0.0.1:6000", "set server IP address and port")
 	flag.BoolVar(&helpFlag, "help", false, "print options list")
 
@@ -58,8 +66,13 @@ func main() {
 				if err == nil {
 					log.Info("JSON decoded", "Id", message.Id, "Content", message.Content)
 					messageEncoded, _ := json.Marshal(Message{message.Id, message.Content})
-					conn.WriteToUDP([]byte(messageEncoded), addr)
-					go action(addr, message.Content)
+					if _, err := conn.WriteToUDP([]byte(messageEncoded), addr); err != nil {
+						log.Error("failed to send response", "error", err)
+					}
+					if !usedIds[message.Id] {
+						go action(conn, addr, message.Content)
+						usedIds[message.Id] = true
+					}
 				} else {
 					log.Error("decoding message from client", "error", err)
 				}
