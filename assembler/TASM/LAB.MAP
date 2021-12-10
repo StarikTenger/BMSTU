@@ -4,7 +4,7 @@
  00000H 00000H 00000H _TEXT              CODE
  00000H 00000H 00000H _DATA              DATA
  00000H 001FFH 00200H STACK              STACK
- 00200H 0028FH 00090H CODE               
+ 00200H 00285H 00086H CODE               
  00290H 002A5H 00016H DATA               
 
 Program entry point at 0020:0043

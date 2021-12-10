@@ -6,22 +6,22 @@ stack 512
 assume cs: code, ds: data
 data segment
 	numbers	dw  34, 45, 56, 67, 75, 89
-	ind dw 0
+	diff dw 0
 	outstring db "0000000$"
 data ends
 	
 code segment
 
 tostring proc
-	mov si,4 ; Индекс элемента
-	mov cx, 5 ;итерации цикла	
+	mov si,4 ; Elem diffex
+	mov cx, 5 ; Iterations
 	MOV BL,10
 	mov outstring[5], 10
 	mov outstring[6], 13
 	goto:
-		DIV BL ;Получаем очередную цифру (делим на 10)
+		DIV BL ; Get another digit
 		mov outstring[si], ah
-		add outstring[si],"0" ;Для вывода цифры
+		add outstring[si],"0"
 		mov ah,0
 		sub si,1 ;si=si-1
 	loop goto
@@ -39,47 +39,45 @@ prntstr proc
 	ret
 prntstr endp	
 
-unsigned_indff proc
+unsigned_diff proc
 	; here we use ax & dx
 	cmp ax, dx
-	jge skip_swap
+	jge skip_swap ; if ax < fx we swap 'em
 		push ax
 		mov ax, dx
 		pop dx
 	skip_swap:
 	sub ax, dx
 	ret
-unsigned_indff endp
+unsigned_diff endp
 
 main:
-	; black magic ((()))
+	; black magic :s
 	mov ax, data
 	mov ds, ax
 	xor bx, bx
-	; reg for indff
-	mov ind, 07fffh
-	; reg for index
+	; reg for diff
+	mov diff, 07fffh
+	; reg for diffex
 	xor cx, cx
 	loop_start:
 		mov dx, numbers[bx]
 		add bx, 2 ; iterator
 		mov ax, numbers[bx]
-		call unsigned_indff
-		
-		
+		call unsigned_diff
 		
 		; comparing
-		cmp ax, ind
+		cmp ax, diff
 		jge endcomp
-			mov ind, ax
+			mov diff, ax
 			
-			; output
-			push bx ; save register
-			push cx ; save register
-			call tostring
-			call prntstr
-			pop cx; restore register
-			pop bx; restore register
+			; uncomment following lines to enable output
+			;push bx ; save register
+			;push cx ; save register
+			;call tostring
+			;call prntstr
+			;pop cx; restore register
+			;pop bx; restore register
 			
 			mov cx, bx ; write index
 		endcomp:
@@ -87,14 +85,14 @@ main:
 		cmp bx, 10
 		jnge loop_start
 	
-	; oudbud
+	; output
 	mov ax, cx
 	shr ax, 1
 	sub ax, 1
 	call tostring
 	call prntstr
 
-	mov ah, 4ch                  ; return control to DOS
+	mov ah, 4ch ; return control to DOS
 	int 21h
 
 
