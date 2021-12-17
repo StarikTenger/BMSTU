@@ -10,13 +10,24 @@ import (
 	"bufio"
 	// "strings"
 	"strconv"
-	// "encoding/json"
+	"encoding/json"
+	"time"
 )
+
+func makeTimestamp() int64 {
+    return time.Now().UnixNano() / int64(time.Millisecond)
+}
 
 type Client struct {
 	username string
 	port int
 	addresses []string
+}
+
+type Message struct {
+	Time string
+	Username string
+	Text string
 }
 
 func (client *Client) add_address (addr string) {
@@ -26,26 +37,35 @@ func (client *Client) add_address (addr string) {
 func (client *Client) serve() {
 	fmt.Println("Launching server...")
 
-	// Устанавливаем прослушивание порта
+	// Setup port listener
 	ln, _ := net.Listen("tcp", ":" + strconv.Itoa(client.port))
 
 	// Запускаем цикл
 	for {
 		conn, _ := ln.Accept()
-		// Будем прослушивать все сообщения разделенные \n
-		message, _ := bufio.NewReader(conn).ReadString('\n')
-		// Распечатываем полученое сообщение
-		fmt.Println(string(message))
+		// Listening
+		message_encoded, _ := bufio.NewReader(conn).ReadString('\n')
+		// Decoding
+		var message Message
+		json.Unmarshal([]byte(message_encoded), &message)
+		if message.Username != client.username {
+			fmt.Print(message.Username + "[" + message.Time + "]: " + message.Text)
+		}
 	}
 }
 
-func (client *Client) send(message string) {
-	message = client.username + ": " + message
+func (client *Client) send(text string) {
+	var message Message
+	message.Text = text
+	message.Time = time.Now().Format("2006-01-02 15:04:05")
+	message.Username = client.username
 	for i := 0; i < len(client.addresses); i++ {
 		go func(j int) {
 			conn, _ := net.Dial("tcp", client.addresses[j])
 			if conn == nil {return}
-			conn.Write([]byte(message))
+			message_encoded, _ := json.Marshal(message)
+			message_encoded = append(message_encoded, '\n')
+			conn.Write(message_encoded)
 		}(i)
 	}
 }
