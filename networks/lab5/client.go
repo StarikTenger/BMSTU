@@ -57,12 +57,7 @@ func (client *Client) serve() {
 		var message Message
 		json.Unmarshal([]byte(message_encoded), &message)
 		client.messages = append(client.messages, message)
-		client.render()
-		// if message.Username != client.username {
-		// 	color.New(color.FgYellow).Print(message.Username)
-		// 	color.New(color.FgGreen).Print("[" + message.Time + "]: ")
-		// 	color.New(color.FgWhite).Print(message.Text)
-		// }
+		client.render(
 	}
 }
 
