@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"encoding/json"
 	"time"
+	"github.com/fatih/color"
 )
 
 func makeTimestamp() int64 {
@@ -49,7 +50,9 @@ func (client *Client) serve() {
 		var message Message
 		json.Unmarshal([]byte(message_encoded), &message)
 		if message.Username != client.username {
-			fmt.Print(message.Username + "[" + message.Time + "]: " + message.Text)
+			color.New(color.FgYellow).Print(message.Username)
+			color.New(color.FgGreen).Print("[" + message.Time + "]: ")
+			color.New(color.FgWhite).Print(message.Text)
 		}
 	}
 }
