@@ -13,16 +13,16 @@ import (
 	"encoding/json"
 	"time"
 	"github.com/fatih/color"
+	tm "github.com/buger/goterm"
 )
 
 func makeTimestamp() int64 {
     return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
-type Client struct {
-	username string
-	port int
-	addresses []string
+func Max(x, y int) int {
+    if x < y {return y}
+    return x
 }
 
 type Message struct {
@@ -31,12 +31,19 @@ type Message struct {
 	Text string
 }
 
+type Client struct {
+	username string
+	port int
+	addresses []string
+	messages []Message
+	shown_messages int
+}
+
 func (client *Client) add_address (addr string) {
 	client.addresses = append(client.addresses, addr)
 }
 
 func (client *Client) serve() {
-	fmt.Println("Launching server...")
 
 	// Setup port listener
 	ln, _ := net.Listen("tcp", ":" + strconv.Itoa(client.port))
@@ -49,11 +56,13 @@ func (client *Client) serve() {
 		// Decoding
 		var message Message
 		json.Unmarshal([]byte(message_encoded), &message)
-		if message.Username != client.username {
-			color.New(color.FgYellow).Print(message.Username)
-			color.New(color.FgGreen).Print("[" + message.Time + "]: ")
-			color.New(color.FgWhite).Print(message.Text)
-		}
+		client.messages = append(client.messages, message)
+		client.render()
+		// if message.Username != client.username {
+		// 	color.New(color.FgYellow).Print(message.Username)
+		// 	color.New(color.FgGreen).Print("[" + message.Time + "]: ")
+		// 	color.New(color.FgWhite).Print(message.Text)
+		// }
 	}
 }
 
@@ -77,8 +86,30 @@ func (client *Client) input_processing() {
 	for {
 		reader := bufio.NewReader(os.Stdin)
 		text, _ := reader.ReadString('\n')
+		client.render()
 		client.send(text)
 	}
+}
+
+func (client *Client) render_message(message *Message) {
+	if client.username == message.Username {
+		color.New(color.FgRed).Print(message.Username + "(You)")
+	} else {
+		color.New(color.FgYellow).Print(message.Username)
+	}
+	color.New(color.FgGreen).Print("[" + message.Time + "]: ")
+	color.New(color.FgWhite).Print(message.Text)
+}
+
+func (client *Client) render() {
+	tm.Clear()
+	tm.Flush()
+	color.New(color.FgCyan).Println("Last " + strconv.Itoa(client.shown_messages) + " messages:")
+	for i := Max(0, len(client.messages) - client.shown_messages); i < len(client.messages); i++ {
+		message := client.messages[i]
+		client.render_message(&message)
+	}
+	color.New(color.FgYellow).Print(client.username + ": ")
 }
 
 func main() {
@@ -87,6 +118,7 @@ func main() {
 	// Parsing from command line
 	flag.StringVar(&client.username, "username", "username", "set username")
 	flag.IntVar(&client.port, "port", 8080, "set port")
+	flag.IntVar(&client.shown_messages, "messages", 20, "")
 	flag.Parse()
 
 	
@@ -99,5 +131,6 @@ func main() {
 	fmt.Println(client)
 
 	go client.serve()
+	client.render()
 	client.input_processing()
 }
