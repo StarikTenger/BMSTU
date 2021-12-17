@@ -109,7 +109,16 @@ func (client *Client) render() {
 		message := client.messages[i]
 		client.render_message(&message)
 	}
-	color.New(color.FgYellow).Print(client.username + ": ")
+	color.New(color.FgRed).Print(client.username + ": ")
+}
+
+func (client *Client) load_addresses(path string) {
+	file, _ := os.Open(path)
+    defer file.Close()
+	scanner := bufio.NewScanner(file)
+    for scanner.Scan() {
+        client.add_address(scanner.Text())
+    }
 }
 
 func main() {
@@ -124,9 +133,7 @@ func main() {
 	
 
 	// TODO: Address list parsing
-	client.add_address("localhost:8081")
-	client.add_address("localhost:8082")
-	client.add_address("localhost:8083")
+	client.load_addresses("addresses.conf")
 
 	fmt.Println(client)
 
