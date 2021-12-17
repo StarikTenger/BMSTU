@@ -55,9 +55,9 @@ main:
 	; black magic :s
 	mov ax, data
 	mov ds, ax
-	xor bx, bx
+	
 	; reg for diff
-	mov diff, 07fffh
+	mov diff, 7fffh
 	; reg for diffex
 	xor cx, cx
 	loop_start:
