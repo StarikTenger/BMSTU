@@ -1,3 +1,9 @@
+; init data segment
+initds macro
+    mov ax, data
+    mov ds, ax
+endm
+
 endprogram macro
     mov ah, 4ch
     int 21h
@@ -22,6 +28,29 @@ println macro str
     lea dx, newline
     int 21h
     pop ax
+endm
+
+; scan str
+scanstr macro string
+    mov dx, offset string
+    ; considering that sting lies in dx
+    ; input string
+    xor ax, ax
+    mov ah, 0Ah
+    int 21h
+    
+    ; fix string adding '$' to it's end
+    mov si, dx
+    xor bh, bh
+    mov bl, [si+1]
+    mov ch, '$'
+    add bx, 2
+    mov [si+bx], ch
+
+    ; print newline
+    mov dx, offset newline
+    mov ah, 09h
+    int 21h
 endm
 
 tostring macro num, output_string
@@ -57,17 +86,6 @@ endm
 ifequal macro a, b, endmark
     cmp a, b
     je endmark
-endm
-
-ifspace macro symbol, endmark
-    push ax
-    push bx
-    mov ah, ' '
-    mov bh, symbol
-    cmp bh, ah
-    pop bx
-    pop ax
-    jne endmark
 endm
 
 ifnotspace macro symbol, endmark
@@ -116,4 +134,9 @@ movesymbol macro s1, s2
     mov ah, s2
     mov s1, ah
     pop ax
+endm
+
+strlen macro str, reg
+    xor reg&x, reg&x
+    mov reg&l, str[1]
 endm
