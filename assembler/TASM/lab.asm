@@ -7,6 +7,9 @@ data segment
     string1 db 100, 99 dup ('$')
     max_len dw 16
     num_a db 100, 99 dup (0)
+
+    ; error messages
+    error_wrong_symbol db 100, " error: non-numerical symbol $"
 data ends
 
 code segment
@@ -36,6 +39,11 @@ tonum macro string, num
     mov si, 2 ; si for indexing
     loop_tonum:
         mov ch, string[si]
+        ; Checking for number
+        ifnotnumber ch, ok_it_is_number
+            error_symbol error_wrong_symbol, ch
+        ok_it_is_number:
+
         sub ch, '0'
         mov num[bx + 2], ch
 

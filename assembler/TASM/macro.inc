@@ -30,6 +30,28 @@ println macro str
     pop ax
 endm
 
+printchar macro char
+    push ax
+    push dx
+    mov ah, 2
+    mov dl, char
+    int 21h
+    pop dx
+    pop ax
+endm
+
+; throw error
+error macro message
+    println message
+    endprogram
+endm
+
+error_symbol macro message, symbol
+    print message
+    printchar symbol
+    endprogram
+endm
+
 ; scan str
 scanstr macro string
     mov dx, offset string
@@ -119,6 +141,18 @@ ifflag macro flagname, endmark
     pop bx
     pop ax
     je endmark
+endm
+
+ifnotnumber macro symbol, endmark
+    push ax
+    mov al, '/'
+    mov ah, ':'
+    ifless symbol, ah, _&endmark
+    ifless al, symbol, _&endmark
+        pop ax
+        jmp endmark
+    _&endmark&:   
+    pop ax
 endm
 
 settrue macro flagname
