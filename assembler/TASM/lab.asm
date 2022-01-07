@@ -58,6 +58,7 @@ tonum proc
         ifless si, ax, break_tonum
             jmp loop_tonum
         break_tonum:
+    ret
 tonum endp
 
 scannum macro num
@@ -69,24 +70,30 @@ endm
 
 calculate_sum proc
     mov si, max_len
-    add si, 1
+    sub si, 1
     loop_sum:
         ; put local sum in ch
         xor cx, cx
         mov ah, num_a[si]
         mov bh, num_b[si]
         mov ch, num_c[si]
+
         add ch, ah
-        ;add ch, bh
+        add ch, bh
+        ; add ch, '0'
+        ; printchar ch
+        ; sub ch, '0'
+        
         ; if overflow
-        ; ifless notation, ch, sum_overflow
-        ; ifequal notation, ch, sum_overflow
-        ;     ; reminder in ch
-        ;     sub ch, notation
-        ;     ; add 1 to next digit
-        ;     mov cl, 1
-        ;     mov num_c[si - 1], cl
-        ; sum_overflow:
+        mov cl, notation
+        dec cl
+        ifless cl, ch, sum_overflow
+            ; reminder in ch
+            sub ch, notation
+            ; add 1 to next digit
+            mov cl, 1
+            mov num_c[si - 1], cl
+        sum_overflow:
 
         mov num_c[si], ch
 
