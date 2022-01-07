@@ -17,6 +17,26 @@ data ends
 
 code segment
 
+; hex digit mapping
+; working with ch register
+tohex proc
+    mov cl, 60h
+    ifless cl, ch, tohexendif
+        sub ch, 'a'
+        add ch, ':'
+    tohexendif:
+    ret
+tohex endp
+
+fromhex proc
+    mov cl, '9'
+    ifless cl, ch, fromhexendif
+        sub ch, ':'
+        add ch, 'a'
+    fromhexendif:
+    ret
+fromhex endp
+
 numtostring proc
     mov bp, sp
     mov si, [bp + 2] ; num offset in di
@@ -26,6 +46,8 @@ numtostring proc
     loop_numtostring:
         mov ch, [si]
         add ch, '0'
+        ; hex mapping
+        call fromhex
         mov string[bx], ch
 
         inc si
@@ -56,7 +78,9 @@ tonum proc
     mov [di], dx ; fixing first digit
     loop_tonum:
         mov ch, string[si]
-        ; Checking for number
+        ; hex mapping
+        call tohex
+        ; checking for number
         ifnotnumber ch, ok_it_is_number
             error_symbol error_wrong_symbol, ch
         ok_it_is_number:
