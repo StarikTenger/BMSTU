@@ -9,7 +9,7 @@ data segment
     num_a db 100, 99 dup (0) ; first num
     num_b db 100, 99 dup (0) ; second num
     num_c db 100, 99 dup (0) ; result
-    notation db 10 ; decimal or hex
+    notation db 10h ; decimal or hex
 
     ; error messages
     error_wrong_symbol db 100, " error: non-numerical symbol $"
@@ -17,20 +17,31 @@ data ends
 
 code segment
 
-numtostring macro num, string
+numtostring proc
+    mov bp, sp
+    mov si, [bp + 2] ; num offset in di
     mov ax, max_len
-    xor si, si ; si for indexing
+    xor di, di ; di for indexing
     mov bx, 2
     loop_numtostring:
-        mov ch, num[si]
+        mov ch, [si]
         add ch, '0'
         mov string[bx], ch
 
         inc si
+        inc di
         inc bx
-        ifless si, ax, break_numtostring
+        ifless di, ax, break_numtostring
             jmp loop_numtostring
         break_numtostring:
+    ret
+numtostring endp
+
+printnum macro num
+    mov dx, offset num
+    push dx
+    call numtostring
+    println string
 endm
 
 tonum proc
@@ -110,13 +121,15 @@ start:
 
     scannum num_a
     scannum num_b
+    xor dx, dx
+    mov num_c[0], dh ; fixing first digit of num_c
 
     call calculate_sum
 
-    numtostring num_c, string1
-    println string1
+    printnum num_a
+    printnum num_b
+    printnum num_c
     
-
     endprogram
 code ends
 end start

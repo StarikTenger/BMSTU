@@ -146,7 +146,8 @@ endm
 ifnotnumber macro symbol, endmark
     push ax
     mov al, '/'
-    mov ah, ':'
+    mov ah, '0'
+    add ah, notation
     ifless symbol, ah, _&endmark
     ifless al, symbol, _&endmark
         pop ax
