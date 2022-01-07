@@ -9,7 +9,7 @@ data segment
     num_a db 100, 99 dup (0) ; first num
     num_b db 100, 99 dup (0) ; second num
     num_c db 100, 99 dup (0) ; result
-    notation db 10h ; decimal or hex
+    notation db 10 ; decimal or hex
 
     ; error messages
     error_wrong_symbol db 100, " error: non-numerical symbol $"
@@ -115,9 +115,6 @@ calculate_sum proc
 
         add ch, ah
         add ch, bh
-        ; add ch, '0'
-        ; printchar ch
-        ; sub ch, '0'
         
         ; if overflow
         mov cl, notation
@@ -133,12 +130,47 @@ calculate_sum proc
         mov num_c[si], ch
 
         dec si
-        cmp si, 1
-        je break_sum
+        cmp si, 0
+        jl break_sum
         jmp loop_sum
     break_sum:
     ret
 calculate_sum endp
+
+calculate_diff proc
+    mov si, max_len
+    sub si, 1
+    xor dh, dh
+    loop_diff:
+        ; put local diff in ch
+        xor cx, cx
+        mov ah, num_a[si]
+        mov bh, num_b[si]
+
+        add ch, ah
+        sub ch, bh
+        sub ch, dh
+        
+        ; if overflow
+        xor cl, cl ; cl <--- 0
+        xor dh, dh ; dh <--- 0
+        ifless ch, cl, diff_overflow
+            ; reminder in ch
+            add ch, notation
+            ; add 1 to next digit
+            mov dh, 1
+            
+        diff_overflow:
+
+        mov num_c[si], ch
+
+        dec si
+        cmp si, 0
+        jl break_diff
+        jmp loop_diff
+    break_diff:
+    ret
+calculate_diff endp
 
 start:
     initds

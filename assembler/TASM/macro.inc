@@ -40,6 +40,15 @@ printchar macro char
     pop ax
 endm
 
+printdigit macro digit
+    push dx
+    mov dh, digit
+    add dh, '0'
+    printchar dh
+    sub dh, '0'
+    pop dx
+endm
+
 ; throw error
 error macro message
     println message
