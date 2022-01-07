@@ -172,6 +172,67 @@ calculate_diff proc
     ret
 calculate_diff endp
 
+calculate_prod proc
+    mov di, max_len
+    sub di, 1
+    xor bx, bx
+    
+    loop_sumprod:
+        mov si, max_len
+        sub si, 1
+        loop_prod:
+           
+            xor ax, ax
+            xor cx, cx
+            xor dx, dx
+            mov al, num_a[si]
+            mov dl, num_b[di]
+            
+            ; put local prod in al
+            mul dx
+            
+            ; reminder in ch
+            mov cl, notation
+            div cl
+            ; add to next digit
+            sub si, bx
+            add num_c[si - 1], al
+            add num_c[si], ah
+            add si, bx
+
+            dec si
+            cmp si, 0
+            jl break_prod
+            jmp loop_prod
+        break_prod:
+
+        inc bx
+        dec di
+        cmp di, 0
+        jl break_sumprod
+        jmp loop_sumprod
+    break_sumprod:
+
+    mov di, max_len
+    sub di, 1
+    loop_fix:
+        ; reminder in ch
+        xor ax, ax
+        mov cl, notation
+        mov al, num_c[di]
+        div cl
+        ; add to next digit
+        add num_c[di - 1], al
+        mov num_c[di], ah
+
+        dec di
+        cmp di, 0
+        jl break_fix
+        jmp loop_fix
+    break_fix:
+    ret
+calculate_prod endp
+
 start:
     initds
 
@@ -180,7 +241,7 @@ start:
     xor dx, dx
     mov num_c[0], dh ; fixing first digit of num_c
 
-    call calculate_sum
+    call calculate_prod
 
     printnum num_a
     printnum num_b
