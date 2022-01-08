@@ -13,6 +13,9 @@ space db 0Ah, ' '
 flag dw 0
 wordcount dw 0
 
+include 'input.asm'
+include 'output.asm'
+
 scanstr:
     ; considering that sting lies in dx
     ; input string
@@ -36,7 +39,7 @@ scanstr:
 
 reverse:
     ; step 1: finding words
-    mov si, 2
+    mov si, 0
     settrue flag
 
     loop1:
@@ -83,10 +86,14 @@ reverse:
 
 start:
     ; read strings
-    mov dx, string
-    call scanstr
+    ;mov dx, string
+    ;call scanstr
+
+    call read_from_file
 
     call reverse
     println string_reversed
+
+    ;call write_to_file
 
     endprogram

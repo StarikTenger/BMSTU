@@ -1,18 +1,17 @@
-use16                       ;Генерировать 16-битный код
-org 100h                    ;Программа начинается с адреса 100h
-    jmp start               ;Перепрыгнуть данные
-;-------------------------------------------------------------------------------
 ; Данные
-file_name db 'hello.txt',0
+file_name db 'input.txt',0
 s_error   db 'Error!',13,10,'$'
 s_file    db '----[ file "Hello.txt" ]$'
 endline   db 13,10,'$'
 s_pak     db 'Press any key...$'
 buffer    rb 81             ;80 + 1 байт для символа конца строки '$'
 handle    rw 1              ;Дескриптор файла
+; Данные
+output_file_name db 'output.txt',0
+size      db 19
 ;-------------------------------------------------------------------------------
 ; Код
-start:
+read_from_file:
     mov ah,3Dh              ;Функция DOS 3Dh (открытие файла)
     xor al,al               ;Режим открытия - только чтение
     mov dx,file_name        ;Имя файла
@@ -25,29 +24,22 @@ start:
 
     mov bx,ax               ;Дескриптор файла
     mov ah,3Fh              ;Функция DOS 3Fh (чтение из файла)
-    mov dx,buffer           ;Адрес буфера для данных
+    mov dx,string           ;Адрес буфера для данных
     mov cx,80               ;Максимальное кол-во читаемых байтов
     int 21h                 ;Обращение к функции DOS
     jnc @F                  ;Если нет ошибки, то продолжаем
     call error_msg          ;Вывод сообщения об ошибке
     jmp close_file          ;Закрыть файл и выйти из программы
 
-@@: mov bx,buffer
+@@: mov bx,string
     add bx,ax               ;В AX количество прочитанных байтов
     mov byte[bx],'$'        ;Добавление символа '$'
-
     mov ah,9
-    mov dx,s_file
-    int 21h                 ;Вывод строки с именем файла
-
-    mov cx,56
-    call line               ;Вывод линии
-
-    mov ah,9
-    mov dx,buffer
+    mov dx,string
     int 21h                 ;Вывод содержимого файла
     mov dx,endline
     int 21h                 ;Вывод перехода на новую строку
+    ret
 
     mov cx,80
     call line               ;Вывод линии
@@ -56,8 +48,6 @@ close_file:
     mov ah,3Eh              ;Функция DOS 3Eh (закрытие файла)
     mov bx,[handle]         ;Дескриптор
     int 21h                 ;Обращение к функции DOS
-    jnc exit                ;Если нет ошибки, то выход из программы
-    call error_msg          ;Вывод сообщения об ошибке
 
 exit:
     mov ah,9
