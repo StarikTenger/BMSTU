@@ -184,7 +184,7 @@ ifminus macro symbol, endmark
     cmp bh, ah
     pop bx
     pop ax
-    e endmark
+    jne endmark
 endm
 
 settrue macro flagname

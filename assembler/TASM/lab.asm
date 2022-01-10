@@ -10,6 +10,7 @@ data segment
     num_b db 100, 99 dup (0) ; second num
     num_c db 100, 99 dup (0) ; result
     notation db 10 ; decimal or hex
+    cmpres db 0
 
     ; error messages
     error_wrong_symbol db 100, " error: non-numerical symbol $"
@@ -46,9 +47,12 @@ numtostring proc
     add si, max_len
     mov bl, [si]
     cmp bx, 0
-    je no_sign
+    je plus
         printchar '-'
-    no_sign:
+        jmp endsign
+    plus:
+        printchar '+'
+    endsign:
     sub si, max_len
 
     mov bx, 2
@@ -160,10 +164,97 @@ calculate_sum proc
     ret
 calculate_sum endp
 
+swap_nums macro
+    mov si, max_len ;; si for indexing
+    loop_swap:
+        mov al, num_a[si]
+        mov bl, num_b[si]
+        xchg al, bl
+        mov num_a[si], al
+        mov num_b[si], bl
+
+        cmp si, 0
+        je break_swap
+        jmp loop_swap
+    break_swap:
+    ret
+endm
+
+compare_nums proc
+    push di
+    push ax
+    push bx    
+    xor ax, ax
+    xor bx, bx
+    xor si, si
+
+    ; checking sign
+    mov di, max_len
+    mov al, num_a[di]
+    mov bl, num_b[di]
+
+    cmp ax, bx
+    je loop_comp
+    jl sign_less
+        mov cmpres, 2        
+        jmp endcompare_nums
+    sign_less:
+        mov cmpres, 1
+        jmp endcompare_nums
+    
+    loop_comp:
+        mov al, num_a[si]
+        mov bl, num_b[si]
+        cmp ax, bx
+        je cmp_equal
+        jl equal_less
+            mov cmpres, 1
+            jmp break_comp
+        equal_less:
+            mov cmpres, 2
+            jmp break_comp
+        cmp_equal:
+
+        inc si
+        cmp si, max_len
+        jge break_comp
+        jmp loop_comp
+    break_comp:
+
+    ; if signs - -
+    mov di, max_len
+    mov al, num_a[di]
+    cmp al, 0
+    jne endifcomp0
+        xor ax, ax
+        mov al, cmpres
+        xor al, 11b ; 10 xor 11 = 01; 01 xor 11 = 10
+        mov cmpres, al        
+    endifcomp0:
+
+    endcompare_nums:
+    pop bx
+    pop ax
+    pop di
+    ret
+compare_nums endp
+
 calculate_diff proc
     mov si, max_len
     sub si, 1
     xor dh, dh
+
+    ; sign
+    mov di, max_len
+    mov al, num_a[di]
+    mov bl, num_b[di]
+    xor al, bl
+    cmp al, 0
+    jne not_swap
+        swap_nums
+    not_swap:
+
+
     loop_diff:
         ; put local diff in ch
         xor cx, cx
@@ -277,11 +368,14 @@ start:
 
     ; call calculate_sum
     ; call calculate_diff
-    call calculate_prod
+    ; call calculate_prod
+    call compare_nums
+    
+    printdigit cmpres
 
-    printnum num_a
-    printnum num_b
-    printnum num_c
+    ; printnum num_a
+    ; printnum num_b
+    ; printnum num_c
     
     endprogram
 code ends
