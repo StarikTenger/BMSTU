@@ -42,6 +42,15 @@ numtostring proc
     mov si, [bp + 2] ; num offset in di
     mov ax, max_len
     xor di, di ; di for indexing
+    ; print sign
+    add si, max_len
+    mov bl, [si]
+    cmp bx, 0
+    je no_sign
+        printchar '-'
+    no_sign:
+    sub si, max_len
+
     mov bx, 2
     loop_numtostring:
         mov ch, [si]
@@ -80,13 +89,27 @@ tonum proc
         mov ch, string[si]
         ; hex mapping
         call tohex
-        ; checking for number
+        ; checking for number or -
         ifnotnumber ch, ok_it_is_number
+        ifnotminus ch, minus_case
             error_symbol error_wrong_symbol, ch
         ok_it_is_number:
 
-        sub ch, '0'
-        mov [di + bx], ch
+
+        jmp number_case
+        minus_case:
+            push ax
+            add di, max_len
+            mov ax, [di]
+            not ax
+            mov [di], ax
+            sub di, max_len
+            pop ax
+            jmp endcase
+        number_case:
+            sub ch, '0'
+            mov [di + bx], ch
+        endcase:
 
         inc si
         inc bx
@@ -230,6 +253,17 @@ calculate_prod proc
         jl break_fix
         jmp loop_fix
     break_fix:
+
+    ; sign calculating
+    mov di, max_len
+    push ax
+    push bx
+    mov al, num_a[di]
+    mov bl, num_b[di]
+    xor al, bl
+    mov num_c[di], al
+    pop bx
+    pop ax
     ret
 calculate_prod endp
 

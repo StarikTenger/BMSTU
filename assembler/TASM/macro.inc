@@ -165,6 +165,28 @@ ifnotnumber macro symbol, endmark
     pop ax
 endm
 
+ifnotminus macro symbol, endmark
+    push ax
+    push bx
+    mov ah, '-'
+    mov bh, symbol
+    cmp bh, ah
+    pop bx
+    pop ax
+    je endmark
+endm
+
+ifminus macro symbol, endmark
+    push ax
+    push bx
+    mov ah, '-'
+    mov bh, symbol
+    cmp bh, ah
+    pop bx
+    pop ax
+    e endmark
+endm
+
 settrue macro flagname
     mov flagname, 1
 endm
