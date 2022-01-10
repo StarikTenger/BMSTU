@@ -123,62 +123,39 @@ tonum proc
     ret
 tonum endp
 
-scannum macro num
-    scanstr string
-    mov dx, offset num
-    push dx
-    call tonum
+invert_sign macro num
+    push di
+    push ax
+    mov di, max_len
+    mov al, num[di]
+    not al
+    mov num[di], al
+    pop ax
+    pop di
 endm
 
-calculate_sum proc
-    mov si, max_len
-    sub si, 1
-    loop_sum:
-        ; put local sum in ch
-        xor cx, cx
-        mov ah, num_a[si]
-        mov bh, num_b[si]
-        mov ch, num_c[si]
-
-        add ch, ah
-        add ch, bh
-        
-        ; if overflow
-        mov cl, notation
-        dec cl
-        ifless cl, ch, sum_overflow
-            ; reminder in ch
-            sub ch, notation
-            ; add 1 to next digit
-            mov cl, 1
-            mov num_c[si - 1], cl
-        sum_overflow:
-
-        mov num_c[si], ch
-
-        dec si
-        cmp si, 0
-        jl break_sum
-        jmp loop_sum
-    break_sum:
-    ret
-calculate_sum endp
-
-swap_nums macro
+swap_nums proc
+    push si
+    push ax
+    push bx
     mov si, max_len ;; si for indexing
+    dec si
     loop_swap:
         mov al, num_a[si]
         mov bl, num_b[si]
-        xchg al, bl
-        mov num_a[si], al
-        mov num_b[si], bl
+        mov num_a[si], bl
+        mov num_b[si], al
 
+        dec si
         cmp si, 0
         je break_swap
         jmp loop_swap
-    break_swap:
+    break_swap:    
+    pop bx
+    pop ax
+    pop si
     ret
-endm
+swap_nums endp
 
 compare_nums proc
     push di
@@ -221,16 +198,16 @@ compare_nums proc
         jmp loop_comp
     break_comp:
 
-    ; if signs - -
-    mov di, max_len
-    mov al, num_a[di]
-    cmp al, 0
-    jne endifcomp0
-        xor ax, ax
-        mov al, cmpres
-        xor al, 11b ; 10 xor 11 = 01; 01 xor 11 = 10
-        mov cmpres, al        
-    endifcomp0:
+    ; ; if signs - -
+    ; mov di, max_len
+    ; mov al, num_a[di]
+    ; cmp al, 0
+    ; jne endifcomp0
+    ;     xor ax, ax
+    ;     mov al, cmpres
+    ;     xor al, 11b ; 10 xor 11 = 01; 01 xor 11 = 10
+    ;     mov cmpres, al
+    ; endifcomp0:
 
     endcompare_nums:
     pop bx
@@ -239,21 +216,103 @@ compare_nums proc
     ret
 compare_nums endp
 
-calculate_diff proc
-    mov si, max_len
-    sub si, 1
-    xor dh, dh
+scannum macro num
+    scanstr string
+    mov dx, offset num
+    push dx
+    call tonum
+endm
 
-    ; sign
+calculate_sum proc
+    ; signes comp
     mov di, max_len
     mov al, num_a[di]
     mov bl, num_b[di]
-    xor al, bl
+    cmp al, bl
+    je skipdiff
+        invert_sign num_b
+        call calculate_diff
+        ret
+    skipdiff:
+
+    ; sign
+    call compare_nums
+    cmp cmpres, 2
+    jne not_swap_
+        call swap_nums
+        invert_sign num_c
+    not_swap_:
+
+    mov di, max_len
+    mov al, num_a[di]
     cmp al, 0
+    je invert_sign_in_diff_
+        invert_sign num_c
+    invert_sign_in_diff_:
+
+    mov si, max_len
+    sub si, 1
+    loop_sum:
+        ; put local sum in ch
+        xor cx, cx
+        mov ah, num_a[si]
+        mov bh, num_b[si]
+        mov ch, num_c[si]
+
+        add ch, ah
+        add ch, bh
+        
+        ; if overflow
+        mov cl, notation
+        dec cl
+        ifless cl, ch, sum_overflow
+            ; reminder in ch
+            sub ch, notation
+            ; add 1 to next digit
+            mov cl, 1
+            mov num_c[si - 1], cl
+        sum_overflow:
+
+        mov num_c[si], ch
+
+        dec si
+        cmp si, 0
+        jl break_sum
+        jmp loop_sum
+    break_sum:
+    ret
+calculate_sum endp
+
+calculate_diff proc
+    ; signes comp
+    mov di, max_len
+    mov al, num_a[di]
+    mov bl, num_b[di]
+    cmp al, bl
+    je skipsum
+        invert_sign num_b
+        call calculate_sum
+        ret
+    skipsum:
+
+    ; sign
+    call compare_nums
+    cmp cmpres, 2
     jne not_swap
-        swap_nums
+        call swap_nums
+        invert_sign num_c
     not_swap:
 
+    mov di, max_len
+    mov al, num_a[di]
+    cmp al, 0
+    je invert_sign_in_diff
+        invert_sign num_c
+    invert_sign_in_diff:
+
+    mov si, max_len
+    sub si, 1
+    xor dh, dh 
 
     loop_diff:
         ; put local diff in ch
@@ -368,14 +427,14 @@ start:
 
     ; call calculate_sum
     ; call calculate_diff
-    ; call calculate_prod
-    call compare_nums
+    call calculate_prod
+    ; call compare_nums
     
-    printdigit cmpres
+    ; printdigit cmpres
 
-    ; printnum num_a
-    ; printnum num_b
-    ; printnum num_c
+    printnum num_a
+    printnum num_b    
+    printnum num_c
     
     endprogram
 code ends
