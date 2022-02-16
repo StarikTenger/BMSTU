@@ -13,8 +13,7 @@ space db 0Ah, ' '
 flag dw 0
 wordcount dw 0
 
-include 'input.asm'
-include 'output.asm'
+include 'inout.asm'
 
 scanstr:
     ; considering that sting lies in dx
@@ -39,7 +38,7 @@ scanstr:
 
 reverse:
     ; step 1: finding words
-    mov si, 0
+    xor si, si
     settrue flag
 
     loop1:
@@ -55,12 +54,13 @@ reverse:
         endif2:
 
         inc si
+        inc [size]
         ifnotend [string + si], breakmark1 ; break loop if we reach '$'
         jmp loop1
     breakmark1:
 
     ; step 2: put words in new string
-    mov si, 2 ; iterate through string
+    xor si, si ; iterate through string
     xor di, di ; iterate through word list
     loop3:
         pop bx
@@ -92,8 +92,7 @@ start:
     call read_from_file
 
     call reverse
-    println string_reversed
 
-    ;call write_to_file
+    call write_to_file
 
     endprogram

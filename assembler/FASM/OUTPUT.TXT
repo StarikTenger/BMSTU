@@ -1,2 +1,1 @@
-samplefile
-Hello!
+buzz bar foo
