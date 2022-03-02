@@ -75,9 +75,9 @@ void Model::step() {
     // Borders
     for (auto& p : points) {
         if (p.pos.x < borders[0].x && p.vel.x < 0 || p.pos.x > borders[1].x && p.vel.x > 0)
-            p.vel.x *= -1;
+            p.vel.x *= -bounceK;
         if (p.pos.y < borders[0].y && p.vel.y < 0 || p.pos.y > borders[1].y && p.vel.y > 0)
-            p.vel.y *= -1;
+            p.vel.y *= -bounceK;
     }
 
     // Springs
@@ -86,7 +86,7 @@ void Model::step() {
             auto& p1 = points[i];
             auto& p2 = points[j];
             if (i == j) continue;
-            float k = 0.8;
+            float k = 0.3;
             float springlen = spring_lengths[i][j];        
             float dist = distance(p1.pos, p2.pos);
             float stretch = dist - springlen;

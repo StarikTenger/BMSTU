@@ -26,7 +26,8 @@ struct Point {
 class Model {
 private:
 	float dt = 0.002;
-	float friction = 0.02;
+	float friction = 0.1;
+	float bounceK = 0.5;
 	Vec2 gravity = Vec2(0., 0);
 	std::vector<Vec2> borders = {Vec2(-1, -1), Vec2(1, 1)};
 	std::vector<std::vector<float>> spring_lengths;
