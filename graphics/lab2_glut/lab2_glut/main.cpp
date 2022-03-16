@@ -8,6 +8,7 @@ double  size = 0.2;
 std::string polygonmode[2] = { "GL_LINE","GL_FILL" };
 double rotate_y = PI / 4, rotate_x = PI / 8, l = 1.0, phi = PI / 4;
 double cam_x = 0.f, cam_y = 0.f, cam_z = 0.f;
+bool fill_mode = false;
 
 void xrot(float a) {
     GLdouble matrix[16] = {
@@ -61,7 +62,10 @@ void scale(float x) {
 
 void render_cube(bool default_view = false) {
     glLoadIdentity();
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    if (fill_mode)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    else
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -196,12 +200,12 @@ void specialKeys(int key, int x, int y) {
 void normalKeys(unsigned char key, int x, int y) {
     double cam_vel = 0.1;
     switch (key) {
-        case 'w': cam_z += cam_vel; break;
-        case 's': cam_z -= cam_vel; break;
-        case 'a': cam_x += cam_vel; break;
-        case 'd': cam_x -= cam_vel; break;
-        case 'e': cam_y += cam_vel; break;
-        case 'q': cam_y -= cam_vel; break;
+        case 'd': cam_x += cam_vel; break;
+        case 'a': cam_x -= cam_vel; break;
+        case 'w': cam_y += cam_vel; break;
+        case 's': cam_y -= cam_vel; break;
+        case 'z': fill_mode = false; break;
+        case 'x': fill_mode = true; break;
     }
     glutPostRedisplay();
 }
