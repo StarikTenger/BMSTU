@@ -5,6 +5,7 @@ Draw draw;
 
 void display() {
     draw.fill({40, 40, 120});
+    draw.line({10, 10}, {40, 200}, {255, 255, 0});
     draw.display();
     glutSwapBuffers();
 }

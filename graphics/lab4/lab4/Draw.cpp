@@ -1,4 +1,5 @@
 #include "Draw.h"
+#include <math.h>
 
 Color::Color(int r, int g, int b) : r(r), g(g), b(b) {
 	normalize();
@@ -37,6 +38,26 @@ void Draw::fill(Color col) {
 }
 
 void Draw::line(Vec2<int> begin, Vec2<int> end, Color col) {
+	auto delta = begin - end;
+		delta.x = abs(delta.x);
+		delta.y = abs(delta.y);
+	Vec2<int> sign(
+		begin.x < end.x ? 1 : -1, 
+		begin.y < end.y ? 1 : -1);
+	int error = delta.x - delta.y;
+	set_pixel(end, col);
+	while (begin.x != end.x || begin.y != end.y) {
+		set_pixel(begin, col);
+		int error2 = error * 2;
+		if (error2 > -delta.y) {
+			error -= delta.y;
+			begin.x += sign.x;
+		}
+		if (error2 < delta.x) {
+			error += delta.x;
+			begin.y += sign.y;
+		}
+	}
 }
 
 void Draw::set_pixel(Vec2<int> pos, Color col) {
