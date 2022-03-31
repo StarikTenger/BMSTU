@@ -15,8 +15,6 @@ private:
 	int window = 0;
 	GLubyte* pixel_buffer = nullptr;
 
-	std::vector<Vec2<int>> rasterize_line(Vec2<int> start, Vec2<int> finish);
-
 public:
 	Draw() {};
 	void init(int width = 100, int height = 100);

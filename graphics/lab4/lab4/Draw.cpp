@@ -2,32 +2,6 @@
 #include <math.h>
 #include <queue>
 
-
-std::vector<Vec2<int>> Draw::rasterize_line(Vec2<int> start, Vec2<int> finish) {
-	std::vector<Vec2<int>> points;
-
-	auto delta = start - finish;
-	delta.x = abs(delta.x);
-	delta.y = abs(delta.y);
-	Vec2<int> sign(
-		start.x < finish.x ? 1 : -1,
-		start.y < finish.y ? 1 : -1);
-	int error = delta.x - delta.y;
-	while (start.x != finish.x || start.y != finish.y) {
-		points.push_back(start);
-		int error2 = error * 2;
-		if (error2 > -delta.y) {
-			error -= delta.y;
-			start.x += sign.x;
-		}
-		if (error2 < delta.x) {
-			error += delta.x;
-			start.y += sign.y;
-		}
-	}
-	return points;
-}
-
 void Draw::init(int _width, int _height) {
 	// Size
 	width = _width;
