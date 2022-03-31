@@ -5,7 +5,13 @@ Draw draw;
 
 void display() {
     draw.fill({0, 0, 0});
-    draw.line({10, 10}, {40, 200}, {255, 255, 0});
+    //draw.line({10, 10}, {40, 200}, {255, 255, 0});
+
+    Polygon p;
+    p.color = {250, 250, 40};
+    p.vertices = {{250, 250 - 250}, {250 + 20, 250}, {250, 250 - 50}, {250-200, 250} };
+    draw.polygon(p);
+
     draw.display();
     glutSwapBuffers();
 }

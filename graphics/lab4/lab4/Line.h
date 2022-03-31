@@ -33,9 +33,7 @@ public:
 		Point point;
 		explicit iterator(Vec2<int> start, Vec2<int> finish) : start(start), finish(finish) {
 			point.pos = start;
-			delta = start - finish;
-			delta.x = abs(delta.x);
-			delta.y = abs(delta.y);
+			delta = abs(start - finish);
 			sign = Vec2<int>(
 				start.x < finish.x ? 1 : -1,
 				start.y < finish.y ? 1 : -1);
@@ -44,7 +42,7 @@ public:
 		}
 		iterator& operator++() {
 			point.pos = start;
-			point.opacity = (error * 1. / error0);
+			point.opacity = error0 == 0 ? 1. : (error * 1. / error0);
 			int error2 = error * 2;
 			if (error2 > -delta.y) {
 				error -= delta.y;

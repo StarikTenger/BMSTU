@@ -7,6 +7,10 @@ struct Vec2 {
 	Vec2() {}
 	Vec2(T x, T y) : x(x), y(y) {}
 
+	friend Vec2 abs(const Vec2& a) {
+		return {abs(a.x), abs(a.y)};
+	}
+
 	Vec2 operator+ (const Vec2& b) {
 		return Vec2(x + b.x, y + b.y);
 	}
