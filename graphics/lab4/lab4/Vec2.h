@@ -22,5 +22,8 @@ struct Vec2 {
 	Vec2 operator/(T b) {
 		return Vec2(x / b, y / b);
 	}
-};
 
+	friend bool operator==(const Vec2& a, const Vec2& b) {
+		return a.x == b.x && a.y == b.y;
+	}
+};

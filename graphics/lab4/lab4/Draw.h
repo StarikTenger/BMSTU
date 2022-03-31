@@ -1,12 +1,12 @@
 #pragma once
 #include <GL/glut.h>
+#include <vector>
+#include <algorithm>
+#include <iostream>
 #include "Vec2.h"
-
-struct Color {
-	int r, g, b;
-	Color (int r = 0, int g = 0, int b = 0);
-	void normalize();
-};
+#include "Color.h"
+#include "Polygon.h"
+#include "Line.h"
 
 class Draw {
 private:
@@ -15,12 +15,15 @@ private:
 	int window = 0;
 	GLubyte* pixel_buffer = nullptr;
 
+	std::vector<Vec2<int>> rasterize_line(Vec2<int> start, Vec2<int> finish);
+
 public:
 	Draw() {};
 	void init(int width = 100, int height = 100);
 	void set_pixel(Vec2<int> pos, Color col);
 	void fill(Color col);
-	void line(Vec2<int> begin, Vec2<int> end, Color col);
+	void line(Vec2<int> start, Vec2<int> finish, Color col);
+	void polygon(Polygon polygon);
 	void display();
 };
 

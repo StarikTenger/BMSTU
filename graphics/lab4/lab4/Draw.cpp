@@ -1,17 +1,31 @@
 #include "Draw.h"
 #include <math.h>
+#include <queue>
 
-Color::Color(int r, int g, int b) : r(r), g(g), b(b) {
-	normalize();
-};
 
-void Color::normalize() {
-	if (r < 0) r = 0;
-	if (r > 255) r = 255;
-	if (g < 0) g = 0;
-	if (g > 255) g = 255;
-	if (b < 0) b = 0;
-	if (b > 255) b = 255;
+std::vector<Vec2<int>> Draw::rasterize_line(Vec2<int> start, Vec2<int> finish) {
+	std::vector<Vec2<int>> points;
+
+	auto delta = start - finish;
+	delta.x = abs(delta.x);
+	delta.y = abs(delta.y);
+	Vec2<int> sign(
+		start.x < finish.x ? 1 : -1,
+		start.y < finish.y ? 1 : -1);
+	int error = delta.x - delta.y;
+	while (start.x != finish.x || start.y != finish.y) {
+		points.push_back(start);
+		int error2 = error * 2;
+		if (error2 > -delta.y) {
+			error -= delta.y;
+			start.x += sign.x;
+		}
+		if (error2 < delta.x) {
+			error += delta.x;
+			start.y += sign.y;
+		}
+	}
+	return points;
 }
 
 void Draw::init(int _width, int _height) {
@@ -37,27 +51,32 @@ void Draw::fill(Color col) {
 	}
 }
 
-void Draw::line(Vec2<int> begin, Vec2<int> end, Color col) {
-	auto delta = begin - end;
-		delta.x = abs(delta.x);
-		delta.y = abs(delta.y);
-	Vec2<int> sign(
-		begin.x < end.x ? 1 : -1, 
-		begin.y < end.y ? 1 : -1);
-	int error = delta.x - delta.y;
-	set_pixel(end, col);
-	while (begin.x != end.x || begin.y != end.y) {
-		set_pixel(begin, col);
-		int error2 = error * 2;
-		if (error2 > -delta.y) {
-			error -= delta.y;
-			begin.x += sign.x;
-		}
-		if (error2 < delta.x) {
-			error += delta.x;
-			begin.y += sign.y;
-		}
+void Draw::line(Vec2<int> start, Vec2<int> finish, Color col) {
+	Line line(start, finish);
+	for (const auto& p : line) {
+		set_pixel(p.pos, col * p.opacity);
 	}
+}
+
+void Draw::polygon(Polygon polygon) {
+	if (!polygon.vertices.size())
+		return;
+
+	// Top & bottom points
+	int y_min, y_max = polygon.vertices[0].y;
+	for (const auto& p : polygon.vertices) {
+		y_min = std::min(y_min, p.y);
+		y_max = std::max(y_max, p.y);
+	}
+
+	// Rasterize
+	std::vector<std::priority_queue<int>> layers(y_max - y_min);
+	
+	
+
+	// Sort
+
+	// Draw
 }
 
 void Draw::set_pixel(Vec2<int> pos, Color col) {
