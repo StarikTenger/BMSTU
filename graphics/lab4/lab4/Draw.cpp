@@ -75,7 +75,6 @@ void Draw::polygon(Polygon polygon) {
 			}
 			while (!layers[i].empty() && ind1 == ind0);
 
-			std::cout << y_min + i << " : " << x0 << " - " << x1 << "\n";
 			for (int x = x1 + 1; x < x0; x++) {
 				set_pixel({x, y_min + i}, polygon.color * 0.1);
 			}
@@ -93,7 +92,7 @@ void Draw::polygon(Polygon polygon) {
 }
 
 void Draw::set_pixel(Vec2<int> pos, Color col) {
-	pos.y = height/2 - pos.y - 1;
+	pos.y = height - pos.y - 1;
 	if (0 <= pos.x && pos.x < width && 0 <= pos.y && pos.y < height) {
 		int position = (pos.x + pos.y * width) * 3;
 		pixel_buffer[position] = col.r;
@@ -104,6 +103,5 @@ void Draw::set_pixel(Vec2<int> pos, Color col) {
 
 void Draw::display() {
 	glClear(GL_COLOR_BUFFER_BIT);
-	glPixelZoom(2, 2);
 	glDrawPixels(width, height, GL_RGB, GL_UNSIGNED_BYTE, pixel_buffer);
 }
