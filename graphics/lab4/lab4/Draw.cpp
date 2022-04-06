@@ -58,22 +58,24 @@ void Draw::polygon(Polygon polygon) {
 
 	// Draw
 	for (int i = 0; i < layers.size(); i++) {
-		if (layers[i].empty())
-			continue;
 		bool draw_flag = 1;
 		
 		while (layers[i].size() >= 2) {
 			int x0 = layers[i].top().first;
 			int ind0 = layers[i].top().second;
-			layers[i].pop();
-			int x1 = x0;
-			int ind1 = ind0;
-			do {
-				x1 = layers[i].top().first;
-				ind1 = layers[i].top().second;
+			
+			while (!layers[i].empty() && layers[i].top().second == ind0) {
 				layers[i].pop();
 			}
-			while (!layers[i].empty() && ind1 == ind0);
+			if (layers[i].empty())
+				continue;
+
+			int x1 = layers[i].top().first;
+			int ind1 = layers[i].top().second;
+			while (!layers[i].empty() && layers[i].top().second == ind1) {
+				layers[i].pop();
+			}
+			
 
 			for (int x = x1 + 1; x < x0; x++) {
 				set_pixel({x, y_min + i}, polygon.color * 0.1);
