@@ -48,11 +48,11 @@ void Draw::polygon(Polygon polygon) {
 	}
 
 	// Rasterize
-	std::vector<std::priority_queue<int>> layers(y_max - y_min + 1);
+	std::vector<std::priority_queue<std::pair<int, int>>> layers(y_max - y_min + 1);
 	for (int i = 0; i < polygon.vertices.size(); i++) {
 		int j = (i + 1) % polygon.vertices.size();
 		for (const auto& p : Line(polygon.vertices[i], polygon.vertices[j])) {
-			layers[p.pos.y - y_min].push(p.pos.x);
+			layers[p.pos.y - y_min].push({p.pos.x, i});
 		}
 	}
 
@@ -63,30 +63,37 @@ void Draw::polygon(Polygon polygon) {
 		bool draw_flag = 1;
 		
 		while (layers[i].size() >= 2) {
-			int x0 = layers[i].top();
+			int x0 = layers[i].top().first;
+			int ind0 = layers[i].top().second;
 			layers[i].pop();
-			int x1;
+			int x1 = x0;
+			int ind1 = ind0;
 			do {
-				x1 = layers[i].top();
+				x1 = layers[i].top().first;
+				ind1 = layers[i].top().second;
 				layers[i].pop();
-			} 
-			while (!layers[i].empty() && x0 + 1 > x1);
+			}
+			while (!layers[i].empty() && ind1 == ind0);
+
 			std::cout << y_min + i << " : " << x0 << " - " << x1 << "\n";
 			for (int x = x1 + 1; x < x0; x++) {
-				set_pixel({x, y_min + i}, polygon.color);
+				set_pixel({x, y_min + i}, polygon.color * 0.1);
 			}
+
+			set_pixel({x0, y_min + i}, { 0, 255, 0 });
+			set_pixel({x1, y_min + i}, { 255, 0, 0 });
 		}
 	}
 
 	// Borders
 	for (int i = 0; i < polygon.vertices.size(); i++) {
 		int j = (i + 1) % polygon.vertices.size();
-		line(polygon.vertices[i], polygon.vertices[j], polygon.color);
+		//line(polygon.vertices[i], polygon.vertices[j], {255, 0, 0});
 	}
 }
 
 void Draw::set_pixel(Vec2<int> pos, Color col) {
-	pos.y = height - pos.y - 1;
+	pos.y = height/2 - pos.y - 1;
 	if (0 <= pos.x && pos.x < width && 0 <= pos.y && pos.y < height) {
 		int position = (pos.x + pos.y * width) * 3;
 		pixel_buffer[position] = col.r;
@@ -97,5 +104,6 @@ void Draw::set_pixel(Vec2<int> pos, Color col) {
 
 void Draw::display() {
 	glClear(GL_COLOR_BUFFER_BIT);
+	glPixelZoom(2, 2);
 	glDrawPixels(width, height, GL_RGB, GL_UNSIGNED_BYTE, pixel_buffer);
 }

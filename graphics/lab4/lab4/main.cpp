@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
 
-    draw.init(500, 500);
+    draw.init(1000, 1000);
 
     glutDisplayFunc(display);
     glutMainLoop();
