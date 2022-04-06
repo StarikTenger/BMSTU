@@ -58,7 +58,7 @@ public:
 		}
 		iterator operator++(int) { iterator retval = *this; ++(*this); return retval; }
 		bool operator==(iterator other) const {
-			return tail == other.point.pos;
+			return point.pos == other.point.pos;
 		}
 		bool operator!=(iterator other) const { return !(*this == other); }
 		reference operator*() const { return point; }

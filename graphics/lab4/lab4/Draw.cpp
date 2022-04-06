@@ -51,9 +51,16 @@ void Draw::polygon(Polygon polygon) {
 	std::vector<std::priority_queue<std::pair<int, int>>> layers(y_max - y_min + 1);
 	for (int i = 0; i < polygon.vertices.size(); i++) {
 		int j = (i + 1) % polygon.vertices.size();
+		int k = (polygon.vertices.size() + i - 1) % polygon.vertices.size();
 		for (const auto& p : Line(polygon.vertices[i], polygon.vertices[j])) {
 			layers[p.pos.y - y_min].push({p.pos.x, i});
 		}
+		if ((polygon.vertices[i].y - polygon.vertices[j].y > 0) ^
+			(polygon.vertices[i].y - polygon.vertices[k].y < 0)) {
+			layers[polygon.vertices[i].y - y_min].push({ polygon.vertices[i].x, k });
+			set_pixel(polygon.vertices[i], { 255, 255, 255 });
+		}
+			
 	}
 
 	// Draw
@@ -81,8 +88,8 @@ void Draw::polygon(Polygon polygon) {
 				set_pixel({x, y_min + i}, polygon.color * 0.1);
 			}
 
-			set_pixel({x0, y_min + i}, { 0, 255, 0 });
-			set_pixel({x1, y_min + i}, { 255, 0, 0 });
+			set_pixel({x0, y_min + i}, { 0, 180, 0 });
+			set_pixel({x1, y_min + i}, { 180, 0, 0 });
 		}
 	}
 
@@ -97,9 +104,9 @@ void Draw::set_pixel(Vec2<int> pos, Color col) {
 	pos.y = height - pos.y - 1;
 	if (0 <= pos.x && pos.x < width && 0 <= pos.y && pos.y < height) {
 		int position = (pos.x + pos.y * width) * 3;
-		pixel_buffer[position] = col.r;
-		pixel_buffer[position + 1] = col.g;
-		pixel_buffer[position + 2] = col.b;
+		pixel_buffer[position] += col.r;
+		pixel_buffer[position + 1] += col.g;
+		pixel_buffer[position + 2] += col.b;
 	}
 }
 
