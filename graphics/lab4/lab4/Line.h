@@ -25,6 +25,7 @@ public:
 	private:
 		Vec2<int> start;
 		Vec2<int> finish;
+		Vec2<int> tail;
 		Vec2<int> delta;
 		Vec2<int> sign;
 		int error;
@@ -32,7 +33,7 @@ public:
 	public:
 		Point point;
 		explicit iterator(Vec2<int> start, Vec2<int> finish) : start(start), finish(finish) {
-			point.pos = start;
+			tail = point.pos = start;
 			delta = abs(start - finish);
 			sign = Vec2<int>(
 				start.x < finish.x ? 1 : -1,
@@ -41,6 +42,7 @@ public:
 			error0 = error;
 		}
 		iterator& operator++() {
+			tail = point.pos;
 			point.pos = start;
 			point.opacity = error0 == 0 ? 1. : (error * 1. / error0);
 			int error2 = error * 2;
@@ -56,7 +58,7 @@ public:
 		}
 		iterator operator++(int) { iterator retval = *this; ++(*this); return retval; }
 		bool operator==(iterator other) const {
-			return point.pos == other.point.pos;
+			return tail == other.point.pos;
 		}
 		bool operator!=(iterator other) const { return !(*this == other); }
 		reference operator*() const { return point; }
