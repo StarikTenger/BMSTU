@@ -52,13 +52,16 @@ void Draw::polygon(Polygon polygon) {
 	for (int i = 0; i < polygon.vertices.size(); i++) {
 		int j = (i + 1) % polygon.vertices.size();
 		int k = (polygon.vertices.size() + i - 1) % polygon.vertices.size();
+		int y_prev = -1;
 		for (const auto& p : Line(polygon.vertices[i], polygon.vertices[j])) {
-			layers[p.pos.y - y_min].push({p.pos.x, i});
+			if (y_prev != p.pos.y)
+				layers[p.pos.y - y_min].push({p.pos.x, i});
+			y_prev = p.pos.y;
 		}
 		if ((polygon.vertices[i].y - polygon.vertices[j].y > 0) ^
 			(polygon.vertices[i].y - polygon.vertices[k].y < 0)) {
 			layers[polygon.vertices[i].y - y_min].push({ polygon.vertices[i].x, k });
-			set_pixel(polygon.vertices[i], { 255, 255, 255 });
+			//set_pixel(polygon.vertices[i], { 255, 255, 255 });
 		}
 			
 	}
