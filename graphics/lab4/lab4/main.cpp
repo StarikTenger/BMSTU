@@ -21,11 +21,13 @@ void mouse_callback(int button, int state, int x, int y) {
     if (button == GLUT_LEFT_BUTTON) {
         if (state == GLUT_DOWN) {
             p.vertices.push_back({x, y});
+            p.orientate();
         }
     }
     if (button == GLUT_RIGHT_BUTTON) {
         if (state == GLUT_DOWN) {
             p.vertices.pop_back();
+            p.orientate();
         }
     }
 }

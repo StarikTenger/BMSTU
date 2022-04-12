@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <algorithm>
 #include "Vec2.h"
 #include "Color.h"
 
@@ -8,5 +9,7 @@ struct Polygon {
 	Color color;
 	
 	Polygon();
+	int area(); // Returns double area of polygon
+	void orientate(); // Orientates polygon clocksise
 };
 
