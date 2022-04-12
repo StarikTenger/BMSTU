@@ -31,7 +31,7 @@ void Draw::line(Vec2<int> start, Vec2<int> finish, Color col) {
 		std::swap(start, finish);
 	Line line(finish, start);
 	for (const auto& p : line) {
-		set_pixel(p.pos, col /** p.opacity*/, PixelMode::ADD);
+		set_pixel(p.pos, col * p.opacity);
 	}
 } 
 
