@@ -1,6 +1,7 @@
 #pragma once
 #include <algorithm>
 #include <iostream>
+#include <math.h>
 #include "Vec2.h"
 #include "Color.h"
 #include "Polygon.h"
@@ -29,7 +30,6 @@ public:
 		Vec2<int> delta;
 		Vec2<int> sign;
 		int error;
-		int error0;
 	public:
 		Point point;
 		explicit iterator(Vec2<int> start, Vec2<int> finish) : start(start), finish(finish) {
@@ -39,12 +39,20 @@ public:
 				start.x < finish.x ? 1 : -1,
 				start.y < finish.y ? 1 : -1);
 			error = delta.x - delta.y;
-			error0 = error;
 		}
 		iterator& operator++() {
 			tail = point.pos;
 			point.pos = start;
-			point.opacity = error0 == 0 ? 1. : (error * 1. / error0);
+			if (delta.x > delta.y) {
+				float m = delta.y * sign.y * 1. / (delta.x * sign.x);
+				float y1 = finish.y - delta.y * sign.y + (point.pos.x - finish.x + delta.x * sign.x) * m;
+				point.opacity = .5 + (y1 - point.pos.y) * sign.y;
+			}
+			if (delta.x < delta.y) {
+				float m = delta.x * sign.x * 1. / (delta.y * sign.y);
+				float x1 = finish.x - delta.x * sign.x + (point.pos.y - finish.y + delta.y * sign.y) * m;
+				point.opacity = .5 - (x1 - point.pos.x) * sign.x;
+			}
 			int error2 = error * 2;
 			if (error2 > -delta.y) {
 				error -= delta.y;

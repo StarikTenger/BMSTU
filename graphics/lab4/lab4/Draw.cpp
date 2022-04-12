@@ -27,7 +27,7 @@ void Draw::fill(Color col) {
 
 void Draw::line(Vec2<int> start, Vec2<int> finish, Color col) {
 	auto delta = abs(start - finish);
-	if ((start.y < finish.y) ^ (start.x > finish.x) ^ (delta.x < delta.y))
+	if (!((start.y < finish.y) ^ (start.x > finish.x)))
 		std::swap(start, finish);
 	Line line(finish, start);
 	for (const auto& p : line) {
@@ -60,7 +60,7 @@ void Draw::polygon(Polygon polygon) {
 			if (y_prev != p.pos.y && p.pos.y != polygon.vertices[j].y)
 				layers[p.pos.y - y_min].push({ p.pos.x, i });
 			y_prev = p.pos.y;
-		}		
+		}
 		if ((polygon.vertices[i].y - polygon.vertices[j].y > 0) ^
 			(polygon.vertices[i].y - polygon.vertices[k].y < 0)) {
 			layers[polygon.vertices[i].y - y_min].push({ polygon.vertices[i].x, k });
