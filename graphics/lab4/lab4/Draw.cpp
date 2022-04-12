@@ -31,7 +31,7 @@ void Draw::line(Vec2<int> start, Vec2<int> finish, Color col) {
 		std::swap(start, finish);
 	Line line(finish, start);
 	for (const auto& p : line) {
-		set_pixel(p.pos, col * p.opacity);
+		set_pixel(p.pos, col /** p.opacity*/, PixelMode::ADD);
 	}
 } 
 
@@ -53,17 +53,18 @@ void Draw::polygon(Polygon polygon) {
 		int j = (i + 1) % polygon.vertices.size();
 		int k = (polygon.vertices.size() + i - 1) % polygon.vertices.size();
 		int y_prev = -1;
-		for (const auto& p : Line(polygon.vertices[i], polygon.vertices[j])) {
-			if (y_prev != p.pos.y)
-				layers[p.pos.y - y_min].push({p.pos.x, i});
+		auto v1 = polygon.vertices[i];
+		auto v2 = polygon.vertices[j];
+		if (v1.x < v2.x) std::swap(v1, v2);
+		for (const auto& p : Line(v1, v2)) {
+			if (y_prev != p.pos.y && p.pos.y != polygon.vertices[j].y)
+				layers[p.pos.y - y_min].push({ p.pos.x, i });
 			y_prev = p.pos.y;
-		}
+		}		
 		if ((polygon.vertices[i].y - polygon.vertices[j].y > 0) ^
 			(polygon.vertices[i].y - polygon.vertices[k].y < 0)) {
 			layers[polygon.vertices[i].y - y_min].push({ polygon.vertices[i].x, k });
-			//set_pixel(polygon.vertices[i], { 255, 255, 255 });
 		}
-			
 	}
 
 	// Draw
@@ -88,28 +89,40 @@ void Draw::polygon(Polygon polygon) {
 			
 
 			for (int x = x1 + 1; x < x0; x++) {
-				set_pixel({x, y_min + i}, polygon.color * 0.1);
+				set_pixel({x, y_min + i}, polygon.color * (DEBUG_MODE ? 0.1 : 1));
 			}
 
-			set_pixel({x0, y_min + i}, { 0, 180, 0 });
-			set_pixel({x1, y_min + i}, { 180, 0, 0 });
+			if (DEBUG_MODE) {
+				set_pixel({x0, y_min + i}, { 0, 180, 0 }, PixelMode::ADD);
+				set_pixel({x1, y_min + i}, { 180, 0, 0 }, PixelMode::ADD);
+			}
 		}
 	}
 
 	// Borders
 	for (int i = 0; i < polygon.vertices.size(); i++) {
 		int j = (i + 1) % polygon.vertices.size();
-		//line(polygon.vertices[i], polygon.vertices[j], {255, 0, 0});
+		if(!DEBUG_MODE)
+			line(polygon.vertices[i], polygon.vertices[j], polygon.color);
 	}
 }
 
-void Draw::set_pixel(Vec2<int> pos, Color col) {
+void Draw::set_pixel(Vec2<int> pos, Color col, PixelMode mode) {
 	pos.y = height - pos.y - 1;
 	if (0 <= pos.x && pos.x < width && 0 <= pos.y && pos.y < height) {
 		int position = (pos.x + pos.y * width) * 3;
-		pixel_buffer[position] += col.r;
-		pixel_buffer[position + 1] += col.g;
-		pixel_buffer[position + 2] += col.b;
+		switch (mode) {
+			case PixelMode::OVERWRITE:
+				pixel_buffer[position] = col.r;
+				pixel_buffer[position + 1] = col.g;
+				pixel_buffer[position + 2] = col.b;
+				break;
+			case PixelMode::ADD:
+				pixel_buffer[position] += col.r;
+				pixel_buffer[position + 1] += col.g;
+				pixel_buffer[position + 2] += col.b;
+				break;
+		}
 	}
 }
 
