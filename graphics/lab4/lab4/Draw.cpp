@@ -130,3 +130,7 @@ void Draw::display() {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glDrawPixels(width, height, GL_RGB, GL_UNSIGNED_BYTE, pixel_buffer);
 }
+
+void Draw::resize_window() {
+	glutReshapeWindow(width, height);
+}

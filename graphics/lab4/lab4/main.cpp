@@ -26,10 +26,24 @@ void mouse_callback(int button, int state, int x, int y) {
     }
     if (button == GLUT_RIGHT_BUTTON) {
         if (state == GLUT_DOWN) {
-            p.vertices.pop_back();
+            if (p.vertices.size())
+                p.vertices.pop_back();
             p.orientate();
         }
     }
+}
+
+void normal_keys(unsigned char key, int x, int y) {
+    double cam_vel = 0.1;
+    switch (key) {
+        case 'x': draw.DEBUG_MODE = true; break;
+        case 'z': draw.DEBUG_MODE = false; break;
+    }
+    glutPostRedisplay();
+}
+
+void resize(int width, int height) {
+    draw.resize_window();
 }
 
 int main(int argc, char* argv[]) {
@@ -42,6 +56,8 @@ int main(int argc, char* argv[]) {
 
     glutDisplayFunc(display);
     glutMouseFunc(mouse_callback);
+    glutReshapeFunc(resize);
+    glutKeyboardFunc(normal_keys);
     glutMainLoop();
     return 0;
 }

@@ -13,7 +13,7 @@ private:
 	int width = 400;
 	int height = 400;
 	int window = 0;
-	bool DEBUG_MODE = false;
+	
 	GLubyte* pixel_buffer = nullptr;
 
 public:
@@ -21,6 +21,7 @@ public:
 		OVERWRITE,
 		ADD
 	};
+	bool DEBUG_MODE = false;
 
 	Draw() {};
 	void init(int width = 100, int height = 100);
@@ -29,5 +30,6 @@ public:
 	void line(Vec2<int> start, Vec2<int> finish, Color col);
 	void polygon(Polygon polygon);
 	void display();
+	void resize_window();
 };
 
