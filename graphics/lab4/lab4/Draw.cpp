@@ -35,7 +35,8 @@ void Draw::line(Vec2<int> start, Vec2<int> finish, Color col) {
 	}
 } 
 
-void Draw::polygon(Polygon polygon) {
+void Draw::polygon(Polygon polygon_) {
+	auto polygon = polygon_.orientate();
 	if (!polygon.vertices.size())
 		return;
 

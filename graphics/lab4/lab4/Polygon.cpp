@@ -15,7 +15,9 @@ int Polygon::area() {
 	return s;
 }
 
-void Polygon::orientate() {
+Polygon Polygon::orientate() {
+	Polygon p = *this;
 	if (area() < 0)
-		std::reverse(vertices.begin(), vertices.end());
+		std::reverse(p.vertices.begin(), p.vertices.end());
+	return p;
 }
