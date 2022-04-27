@@ -21,6 +21,13 @@ struct Cam {
 };
 Cam cam;
 
+void draw_line(glm::vec3 p1, glm::vec3 p2) {
+    glBegin(GL_LINES);
+    glVertex3f(p1.x, p1.y, p1.z);
+    glVertex3f(p2.x, p2.y, p2.z);
+    glEnd();
+}
+
 struct Clipper {
     glm::vec3 corner1 = { -1, -1, -1 };
     glm::vec3 corner2 = { 1, 1, 1 };
@@ -48,6 +55,10 @@ struct Clipper {
         return code;
     }
 
+    void draw() {
+        //draw_line(corner1 * glm::vec3(1, 1, 1), corner2);
+    }
+
     glm::vec3 intersect_plane_x(glm::vec3 a, glm::vec3 b, float x) {
         float k = (x - a.x) / (b.x - a.x);
         return a + (b - a) * k;
@@ -64,14 +75,12 @@ struct Clipper {
 double clipper_size = 2;
 Clipper clipper;
 
-void draw_line(glm::vec3 p1, glm::vec3 p2) {
-    glBegin(GL_LINES);
-    glVertex3f(p1.x, p1.y, p1.z);
-    glVertex3f(p2.x, p2.y, p2.z);
-    glEnd();
-}
 
+glm::vec3 sphere_pos = {0, 0, 0};
 void draw_line_clipped(glm::vec3 p1, glm::vec3 p2, Clipper& clipper) {
+    p1 += sphere_pos;
+    p2 += sphere_pos;
+
     auto code1 = clipper.compute_code(p1);
     auto code2 = clipper.compute_code(p2);
     if (code1 & code2) return;
@@ -172,8 +181,30 @@ void normalKeys(unsigned char key, int x, int y) {
     case 's': cam.dist += cam_dist_vel; break;
     case 'z': clipper_size -= cam_dist_vel * 0.1; break;
     case 'x': clipper_size += cam_dist_vel * 0.1; break;
+    case 'q': sphere_pos.y += 0.1; break;
+    case 'e': sphere_pos.y -= 0.1; break;
     }
     glutPostRedisplay();
+}
+
+
+void specialKeys(int key, int x, int y) {
+    switch (key) {
+    case GLUT_KEY_UP:
+        sphere_pos.x += 0.1;
+        break;
+    case GLUT_KEY_DOWN:
+        sphere_pos.x -= 0.1;
+        break;
+    case GLUT_KEY_LEFT:
+        sphere_pos.z += 0.1;
+        break;
+    case GLUT_KEY_RIGHT:
+        sphere_pos.z -= 0.1;
+        break;
+    }
+    glutPostRedisplay();
+
 }
 
 int main(int argc, char* argv[]) {
@@ -186,7 +217,7 @@ int main(int argc, char* argv[]) {
 
     //glEnable(GL_DEPTH_TEST);
     glutDisplayFunc(display);
-    //glutSpecialFunc(specialKeys);
+    glutSpecialFunc(specialKeys);
     glutKeyboardFunc(normalKeys);
     glutMainLoop();
     return 0;
