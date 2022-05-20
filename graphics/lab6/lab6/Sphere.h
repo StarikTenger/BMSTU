@@ -7,6 +7,15 @@
 
 class Sphere {
 private:
+	// Physics parameters
+	double pos_a = 2;
+	double pos_b = 1;
+	double vel_a = 0;
+	double vel_b = 0;
+	double acc = -15;
+	double k = 1.;
+	double desire_stretching = 1.;
+
 	struct Vertex {
 		glm::vec3 pos;
 		glm::vec3 norm;
@@ -19,8 +28,10 @@ private:
 	Vertex get_vert(double a, double b);
 public:
 	double radius = 1;
-	glm::vec3 pos = {0, 0, 0};
-	int space = 10;
+	glm::vec3 pos = { 0, 0, 0 };
+	int grid_size = 10; // in degrees
+	double stretching = 1.;
+	
 	GLuint texture = 0;
 	std::vector<Vertex> vertices;
 
@@ -28,5 +39,6 @@ public:
 
 	void create_vertices();
 	void display();
+	void step();
 };
 

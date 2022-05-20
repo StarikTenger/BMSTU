@@ -8,21 +8,40 @@
 #include <windows.h>
 #include <stdio.h>
 #include <math.h>
+#include <cstdlib>
+#include <sys/timeb.h>
 #include "TextureLoader.h"
 #include "Sphere.h"
+
+int get_milli_count() {
+	timeb tb;
+	ftime(&tb);
+	int nCount = tb.millitm + (tb.time & 0xfffff) * 1000;
+	return nCount;
+}
+
+int time_prev = 0;
 
 Sphere sphere;
 double angle = 0;
 void display(void) {
 	glClearDepth(1);
-	glClearColor(0.0, 0.0, 0.0, 1.0);
+	glClearColor(0.3, 0.3, 0.3, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 	glTranslatef(0, 0, -10);
 	glRotatef(angle, 0, 1, 0);
 	sphere.display();
 	glutSwapBuffers();
-	angle += 0.2;
+
+	int time_cur = get_milli_count();
+	if (time_cur - time_prev >= 20) {
+		time_prev = time_cur;
+		for (int i = 0; i < 10; i++) {
+			angle += 0.2;
+			sphere.step();
+		}
+	}
 }
 
 void init(void) {
@@ -46,9 +65,10 @@ void init(void) {
 	glDepthFunc(GL_LEQUAL);
 
 	sphere.texture = TextureLoader::load_bmp("texture.bmp", 1000, 1000);
-	sphere.radius = 1;
-	sphere.space = 5;
+	sphere.radius = 2;
+	sphere.grid_size = 5;
 	sphere.create_vertices();
+	sphere.pos.z = 0;
 }
 void reshape(int w, int h) {
 
