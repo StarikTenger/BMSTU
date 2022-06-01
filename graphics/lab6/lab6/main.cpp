@@ -1,5 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <GL/glut.h>
+#include <iostream>
 #include <math.h>
 #include <glm.hpp>
 #include <vector>
@@ -12,35 +13,41 @@
 #include <sys/timeb.h>
 #include "TextureLoader.h"
 #include "Sphere.h"
+#include "TimeCounter.h"
 
-int get_milli_count() {
-	timeb tb;
-	ftime(&tb);
-	int nCount = tb.millitm + (tb.time & 0xfffff) * 1000;
-	return nCount;
-}
+
 
 int time_prev = 0;
-
 Sphere sphere;
-double angle = 0;
+TimeCounter time_counter;
+int window;
+
 void display(void) {
+	time_counter.start_frame();
 	glClearDepth(1);
 	glClearColor(0.3, 0.3, 0.3, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 	glTranslatef(0, 0, -10);
-	glRotatef(angle, 0, 1, 0);
 	sphere.display();
 	glutSwapBuffers();
+	time_counter.end_frame();
 
 	int time_cur = get_milli_count();
-	if (time_cur - time_prev >= 20) {
+	if (time_cur - time_prev >= 20) {		
 		time_prev = time_cur;
 		for (int i = 0; i < 10; i++) {
-			angle += 0.2;
+			sphere.angle += 0.02;
 			sphere.step();
 		}
+	}
+
+	if (time_counter.check_frame_limit()) {
+		std::cout << "Frames processed:   " << time_counter.get_frames() << "\n";
+		std::cout << "Total time spent:   " << time_counter.get_ms_sum() << "\n";
+		std::cout << "Average frame time: " << time_counter.get_average_time() << " ms\n";
+		std::cout << "Standart deviation: " << time_counter.get_standart_deviation() << " ms\n";
+		glutDestroyWindow(window);
 	}
 }
 
@@ -68,8 +75,10 @@ void init(void) {
 	sphere.radius = 2;
 	sphere.grid_size = 5;
 	sphere.create_vertices();
-	sphere.pos.z = 0;
+	sphere.prepare_list();
+	sphere.pos.z = 3;
 }
+
 void reshape(int w, int h) {
 
 	glViewport(0, 0, (GLsizei)w, (GLsizei)h);
@@ -92,7 +101,7 @@ int main(int argc, char** argv) {
 
 	glutInitWindowPosition(100, 100);
 
-	glutCreateWindow("A basic OpenGL Window");
+	window = glutCreateWindow("A basic OpenGL Window");
 
 	init();
 
