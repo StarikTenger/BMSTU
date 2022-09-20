@@ -4,6 +4,10 @@ import qualified  Tokenizer as Tkn
 
 data Result a = Error String | Success a deriving (Show)
 
+validate_Result :: (Result Bool) -> Bool
+validate_Result (Success x) = x
+validate_Result (Error x) = False
+
 take_Success (Success x) = x
 
 instance Functor Result where
@@ -74,21 +78,21 @@ read_Varaible xs _ _ = (Error "expected Tkn.Name", xs)
 --                  Tokens         Possible constructors     Possible varaibles     Term          Rest tokens
 read_Constructor :: [Tkn.Token] -> [ConstructorSignature] -> [VaraibleSignature] -> (Result Term, [Tkn.Token])
 read_Constructor (Tkn.Name name : Tkn.ParL : xs) cns vrs = 
-    ((if find cnsgn cns
-        then fmap2 Constructor (Success cnsgn) (fst terms) -- try fmap, not fmap2
+    ((if validate_Result $ fmap2 (\a b-> a b) (fmap find cnsgn) (Success cns)
+        then fmap2 (\a b-> a b) (fmap Constructor cnsgn) (fst terms) -- try fmap, not fmap2
         else Error "Invalid signature"),
     (snd terms))
     where
-        -- TODO: read_Term instead of read_Varaible
         read_terms :: [Tkn.Token] -> (Result [Term], [Tkn.Token])
         read_terms (Tkn.ParR:ts) = (Success [], ts)
         read_terms (Tkn.Comma:ts) = read_terms ts
         read_terms tokens = (fmap2 (:) (fst res) $ fst terms_read, snd terms_read)
             where
-                res = _read_Term tokens cns vrs -- read Term
+                res = _read_Term tokens cns vrs 
                 terms_read = read_terms $ snd res
-        terms = read_terms xs 
-        cnsgn = ConstructorSignature name $ length $ take_Success $ fst terms
+        terms = read_terms xs
+        cnsgn :: (Result ConstructorSignature)
+        cnsgn = fmap (ConstructorSignature name) (fmap length $ fst terms)
 read_Constructor xs _ _ = (Error "expected Tkn.Name", xs)
 
 --           Tokens         Possible constructors     Possible varaibles     Term          Rest tokens
