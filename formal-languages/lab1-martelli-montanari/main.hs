@@ -100,12 +100,12 @@ _read_Term :: [Tkn.Token] -> [ConstructorSignature] -> [VaraibleSignature] -> (R
 _read_Term (Tkn.Name name : Tkn.ParL : xs) = read_Constructor (Tkn.Name name : Tkn.ParL : xs)
 _read_Term xs = read_Varaible xs
 
-read_Term ts cns vrs = fst $ _read_Term ts cns vrs
+read_Term str cns vrs = fst $ _read_Term (Tkn.tokenize str) cns vrs
 
 constructors = take_Success $ read_ConstructorSignature $ Tkn.tokenize "constructors = f(2), g(1)"
 varaibles = take_Success $ read_VaraibleSignature $ Tkn.tokenize "varaibles = x, y"
-term1 = read_Term (Tkn.tokenize "f(f(x, g(f(x, y))), g(x))") constructors varaibles
-term2 = read_Term (Tkn.tokenize "f(f(x, g(x)), y)") constructors varaibles
+term1 = read_Term "g(f(f(x, g(f(x, y))), g(x)))" constructors varaibles
+term2 = read_Term "g(f(f(x, y), y))" constructors varaibles
 
 join_Results :: [Result x] -> Result [x]
 join_Results [] = Success []
@@ -118,5 +118,5 @@ common_tree (Varaible x) (Varaible y)
 common_tree (Varaible x) (Constructor _ _) = Success $ Varaible x
 common_tree (Constructor _ _) (Varaible x) = Success $ Varaible x
 common_tree (Constructor s1 xs) (Constructor s2 ys)
-    | (s1 == s1) = fmap (Constructor s1) $ join_Results $ map (\(x, y) -> common_tree x y) $ zip xs ys
+    | (s1 == s2) = fmap (Constructor s1) $ join_Results $ map (\(x, y) -> common_tree x y) $ zip xs ys
     | otherwise = Error "constructor signatures mismatch"
