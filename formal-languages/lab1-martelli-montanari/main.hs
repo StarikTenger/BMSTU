@@ -104,4 +104,19 @@ read_Term ts cns vrs = fst $ _read_Term ts cns vrs
 
 constructors = take_Success $ read_ConstructorSignature $ Tkn.tokenize "constructors = f(2), g(1)"
 varaibles = take_Success $ read_VaraibleSignature $ Tkn.tokenize "varaibles = x, y"
-example = read_Term (Tkn.tokenize "f(f(x, g(f(x, y))), g(x))") constructors varaibles
+term1 = read_Term (Tkn.tokenize "f(f(x, g(f(x, y))), g(x))") constructors varaibles
+term2 = read_Term (Tkn.tokenize "f(f(x, g(x)), y)") constructors varaibles
+
+join_Results :: [Result x] -> Result [x]
+join_Results [] = Success []
+join_Results (x:xs) = fmap2 (:) x $ join_Results xs
+
+common_tree :: Term -> Term -> (Result Term)
+common_tree (Varaible x) (Varaible y)
+    | (x == y) = Success $ Varaible x
+    | otherwise = Error "2 varaibles"
+common_tree (Varaible x) (Constructor _ _) = Success $ Varaible x
+common_tree (Constructor _ _) (Varaible x) = Success $ Varaible x
+common_tree (Constructor s1 xs) (Constructor s2 ys)
+    | (s1 == s1) = fmap (Constructor s1) $ join_Results $ map (\(x, y) -> common_tree x y) $ zip xs ys
+    | otherwise = Error "constructor signatures mismatch"
