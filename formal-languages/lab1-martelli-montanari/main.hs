@@ -111,13 +111,19 @@ join_Results :: [Result x] -> Result [x]
 join_Results [] = Success []
 join_Results (x:xs) = fmap2 (:) x $ join_Results xs
 
-type MultiEquation = ([VaraibleSignature], [Term])
+type MultiEquation = ([Term], [Term])
+
+-- use :set -XFlexibleInstances
+instance {-# OVERLAPPING #-} Show MultiEquation where
+    show (vars, terms) = "{" ++  (show_terms vars) ++ "} = {" ++ (show_terms terms) ++ "}"
+        where
+            show_terms ts =  (foldl1 (\v1 v2 -> v1 ++ ", " ++ v2) $ map show ts)
 
 common_tree :: Term -> Term -> (Result Term, [MultiEquation])
 common_tree (Varaible x) (Varaible y)
     | (x == y) = (Success $ Varaible x, [])
     | otherwise = (Error "2 varaibles", [])
-common_tree (Varaible x) (Constructor f xs) = (Success $ Varaible x, [([x], [(Constructor f xs)])])
+common_tree (Varaible x) (Constructor f xs) = (Success $ Varaible x, [([Varaible x], [(Constructor f xs)])])
 common_tree (Constructor f xs) (Varaible x) = common_tree (Varaible x) (Constructor f xs)
 common_tree (Constructor s1 xs) (Constructor s2 ys)
     | (s1 == s2) = (
@@ -126,3 +132,5 @@ common_tree (Constructor s1 xs) (Constructor s2 ys)
     | otherwise = (Error "constructor signatures mismatch", [])
          where
             common_trees = zipWith common_tree xs ys
+
+-- TODO simplify MultiEquation
