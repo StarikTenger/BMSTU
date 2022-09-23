@@ -1,4 +1,5 @@
 import Data.Char(digitToInt)
+import Data.List
 import UnitTesting
 import qualified  Tokenizer as Tkn
 
@@ -23,8 +24,8 @@ instance Functor2 Result where
     fmap2 f (Error x) (Success y) = Error x
     fmap2 f (Error x) (Error y) = Error (x ++ ", " ++ y)
 
-data ConstructorSignature = ConstructorSignature String Int deriving (Show, Eq)
-data VaraibleSignature = VaraibleSignature String deriving (Show, Eq)
+data ConstructorSignature = ConstructorSignature String Int deriving (Show, Eq, Ord)
+data VaraibleSignature = VaraibleSignature String deriving (Show, Eq, Ord)
 
 -- TODO: 
 ---- validate only single letters
@@ -56,18 +57,18 @@ read_VaraibleSignature (Tkn.Name "varaibles":Tkn.EqualSign:xs) = read_varaibles 
         read_varaibles _ = Error "fucked up signature"
 read_VaraibleSignature _ = Error "bullshit tokens"
 
-data Term = Varaible VaraibleSignature | Constructor ConstructorSignature [Term]
+data Term = Varaible VaraibleSignature | Constructor ConstructorSignature [Term] deriving (Eq, Ord)
 instance Show Term where
     show (Varaible (VaraibleSignature x)) = x
     show (Constructor (ConstructorSignature f _) xs) = 
         f ++ "(" ++ (foldl1 (\a b->a++","++b) $ map show xs) ++ ")"
 
-find x xs = foldl1 (||) $ map (==x) xs
+is_in_list x xs = foldl1 (||) $ map (==x) xs
 
 --               Tokens         Possible constructors     Possible varaibles     Term          Rest tokens
 read_Varaible :: [Tkn.Token] -> [ConstructorSignature] -> [VaraibleSignature] -> (Result Term, [Tkn.Token])
 read_Varaible (Tkn.Name name : xs) cns vrs = 
-    ((if find vrsgn vrs 
+    ((if is_in_list vrsgn vrs 
         then Success $ Varaible vrsgn 
         else Error "Invalid signature"), 
     xs)
@@ -78,7 +79,7 @@ read_Varaible xs _ _ = (Error "expected Tkn.Name", xs)
 --                  Tokens         Possible constructors     Possible varaibles     Term          Rest tokens
 read_Constructor :: [Tkn.Token] -> [ConstructorSignature] -> [VaraibleSignature] -> (Result Term, [Tkn.Token])
 read_Constructor (Tkn.Name name : Tkn.ParL : xs) cns vrs = 
-    ((if validate_Result $ fmap2 (\a b-> a b) (fmap find cnsgn) (Success cns)
+    ((if validate_Result $ fmap2 (\a b-> a b) (fmap is_in_list cnsgn) (Success cns)
         then fmap2 (\a b-> a b) (fmap Constructor cnsgn) (fst terms) -- try fmap, not fmap2
         else Error "Invalid signature"),
     (snd terms))
@@ -133,4 +134,34 @@ common_tree (Constructor s1 xs) (Constructor s2 ys)
          where
             common_trees = zipWith common_tree xs ys
 
--- TODO simplify MultiEquation
+merge_MEq :: MultiEquation -> MultiEquation -> MultiEquation
+merge_MEq eq1 eq2 = (merge_trms (sort $ fst eq1) (sort $ fst eq2), merge_trms (sort $ snd eq1) (sort $ snd eq2))
+    where
+        merge_trms :: [Term] -> [Term] -> [Term]
+        merge_trms xs [] = xs
+        merge_trms [] ys = ys
+        merge_trms (x:xs) (y:ys)
+            | (x < y) = x : (merge_trms xs $ y:ys)
+            | (x > y) = y : (merge_trms (x:xs) ys)
+            | otherwise = x : (merge_trms xs ys)
+
+merge :: Ord a => [a] -> [a] -> [a]
+merge xs [] = xs
+merge [] ys = ys
+merge (x:xs) (y:ys)
+  | x <= y = x : merge xs (y:ys)
+  | otherwise = y : merge (x:xs) ys
+
+dups xs = foldl1 (||) $ zipWith (==)  xs $ tail xs
+
+check_MEqs_Collision :: MultiEquation -> MultiEquation -> Bool
+check_MEqs_Collision eq1 eq2 = dups $ merge (fst eq1) (fst eq2)
+
+sys = snd $ take_Success $ fmap2 common_tree term1 term2
+
+compactificate :: [MultiEquation] -> [MultiEquation]
+compactificate [] = []
+compactificate (x:xs) = foldl1 merge_MEq (x:intrs) : compactificate rest
+    where
+        intrs = filter (check_MEqs_Collision x) xs
+        rest = filter (\y -> not $ check_MEqs_Collision x y) xs
