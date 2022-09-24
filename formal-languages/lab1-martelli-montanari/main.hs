@@ -120,7 +120,12 @@ type MultiEquation = ([Term], [Term])
 instance {-# OVERLAPPING #-} Show MultiEquation where
     show (vars, terms) = "{" ++  (show_terms vars) ++ "} = {" ++ (show_terms terms) ++ "}"
         where
+            show_terms [] = ""
             show_terms ts =  (foldl1 (\v1 v2 -> v1 ++ ", " ++ v2) $ map show ts)
+
+instance {-# OVERLAPPING #-} Show [MultiEquation] where
+    show [] = "{}"
+    show ms = "{\n  " ++ (foldl1 (\v1 v2 -> v1 ++ ",\n  " ++ v2) $ map show ms) ++ "\n}"
 
 common_tree :: Term -> Term -> (Result Term, [MultiEquation])
 common_tree (Varaible x) (Varaible y)
@@ -144,7 +149,7 @@ merge_MEq eq1 eq2 = (merge_trms (sort $ fst eq1) (sort $ fst eq2), merge_trms (s
         merge_trms [] ys = ys
         merge_trms (x:xs) (y:ys)
             | (x < y) = x : (merge_trms xs $ y:ys)
-            | (x > y) = y : (merge_trms (x:xs) ys)
+               | (x > y) = y : (merge_trms (x:xs) ys)
             | otherwise = x : (merge_trms xs ys)
 
 merge :: Ord a => [a] -> [a] -> [a]
@@ -191,3 +196,19 @@ choose_MEq ms
         check_MEq (vs, _) ms = 1 == (length $ filter (\x->x) $ 
             map (\meq -> foldl1 (||) [term_in_MEq x meq | x <- vs]) ms)
         filtered = filter ((flip check_MEq) ms) ms 
+
+replace y z [] = []
+replace y z (x:xs)
+  | x==y           = z:replace y z xs
+  | otherwise      = x:replace y z xs
+
+extract_varaibles :: Term -> [Term]
+extract_varaibles (Varaible x) = [(Varaible x)]
+extract_varaibles (Constructor x xs) = foldl1 (++) $ map extract_varaibles xs
+
+-- U: {x} = (t1, t2), {xi} = ∅
+start_sys = join_Results [
+    fmap ((,) [(Varaible $ VaraibleSignature "_")]) $ join_Results [term1, term2],
+    fmap (((flip (,)) []) . (map (!!0)) . group . sort) $ 
+        fmap2 (++) (fmap extract_varaibles term1) (fmap extract_varaibles term2)]
+
