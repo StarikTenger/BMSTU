@@ -108,6 +108,8 @@ varaibles = take_Success $ read_VaraibleSignature $ Tkn.tokenize "varaibles = x,
 term1 = read_Term "f(g(x3), h(x4, g(x5)))" constructors varaibles
 term2 = read_Term "f(x4, h(g(g(x6)), x7)))" constructors varaibles
 
+[x,y,x1,x2,x3,x4,x5,x6,x7] = map Varaible varaibles
+
 join_Results :: [Result x] -> Result [x]
 join_Results [] = Success []
 join_Results (x:xs) = fmap2 (:) x $ join_Results xs
@@ -165,3 +167,27 @@ compactificate (x:xs) = foldl1 merge_MEq (x:intrs) : compactificate rest
     where
         intrs = filter (check_MEqs_Collision x) xs
         rest = filter (\y -> not $ check_MEqs_Collision x y) xs
+
+
+-- TODO:
+-- choose S = M
+-- common_tree
+-- reduction
+-- add to 
+
+term_in_MEq :: Term -> MultiEquation -> Bool
+term_in_MEq t (vs, cs) = foldl1 (||) $ map findt $ vs ++ cs
+    where
+        findt :: Term -> Bool
+        findt (Varaible x) = (Varaible x) == t
+        findt (Constructor s ts) = ((Constructor s ts) == t) || (foldl1 (||) $ map findt ts)
+
+choose_MEq :: [MultiEquation] -> (Result MultiEquation)
+choose_MEq ms
+    | filtered /= [] = (Success $ filtered !! 0)
+    | otherwise = (Error "unification: step 1")
+    where
+        check_MEq :: MultiEquation -> [MultiEquation] -> Bool
+        check_MEq (vs, _) ms = 1 == (length $ filter (\x->x) $ 
+            map (\meq -> foldl1 (||) [term_in_MEq x meq | x <- vs]) ms)
+        filtered = filter ((flip check_MEq) ms) ms 
