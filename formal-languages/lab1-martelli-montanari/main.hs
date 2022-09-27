@@ -63,6 +63,10 @@ instance Show Term where
     show (Constructor (ConstructorSignature f _) xs) = 
         f ++ "(" ++ (foldl1 (\a b->a++","++b) $ map show xs) ++ ")"
 
+get_ConstructorSignature (Constructor s _) = s
+get_terms (Constructor _ ts) = ts
+get_VaraibleSignature (Varaible s) = s
+
 is_in_list x xs = foldl1 (||) $ map (==x) xs
 
 --               Tokens         Possible constructors     Possible varaibles     Term          Rest tokens
@@ -106,7 +110,8 @@ read_Term str cns vrs = fst $ _read_Term (Tkn.tokenize str) cns vrs
 constructors = take_Success $ read_ConstructorSignature $ Tkn.tokenize "constructors = f(2), h(2), g(1)"
 varaibles = take_Success $ read_VaraibleSignature $ Tkn.tokenize "varaibles = x, y, x1, x2, x3, x4, x5, x6, x7"
 term1 = read_Term "f(g(x3), h(x4, g(x5)))" constructors varaibles
-term2 = read_Term "f(x4, h(g(g(x6)), x7)))" constructors varaibles
+term2 = read_Term "f(x1, h(g(g(x6)), x7)))" constructors varaibles
+term3 = read_Term "f(x2,h(x4,x7))" constructors varaibles
 
 [x,y,x1,x2,x3,x4,x5,x6,x7] = map Varaible varaibles
 
@@ -127,19 +132,32 @@ instance {-# OVERLAPPING #-} Show [MultiEquation] where
     show [] = "{}"
     show ms = "{\n  " ++ (foldl1 (\v1 v2 -> v1 ++ ",\n  " ++ v2) $ map show ms) ++ "\n}"
 
-common_tree :: Term -> Term -> (Result Term, [MultiEquation])
-common_tree (Varaible x) (Varaible y)
-    | (x == y) = (Success $ Varaible x, [])
-    | otherwise = (Error "2 varaibles", [])
-common_tree (Varaible x) (Constructor f xs) = (Success $ Varaible x, [([Varaible x], [(Constructor f xs)])])
-common_tree (Constructor f xs) (Varaible x) = common_tree (Varaible x) (Constructor f xs)
-common_tree (Constructor s1 xs) (Constructor s2 ys)
-    | (s1 == s2) = (
-        fmap (Constructor s1) $ join_Results $ map fst common_trees, 
-        foldl1 (++) $ map snd common_trees)
-    | otherwise = (Error "constructor signatures mismatch", [])
-         where
-            common_trees = zipWith common_tree xs ys
+is_Varaible :: Term -> Bool
+is_Varaible (Varaible _) = True
+is_Varaible (Constructor _ _) = False
+
+allTheSame :: (Eq a) => [a] -> Bool
+allTheSame xs = and $ map (== head xs) (tail xs)
+
+common_tree :: [Term] -> Result (Term, [MultiEquation])
+common_tree terms
+    | vars_len == 0 && (allTheSame $ map get_ConstructorSignature cons) = fmap2 (,)
+        (fmap (Constructor $ get_ConstructorSignature $ cons!!0) $ fmap (map fst) common_trees)
+        (fmap (foldl1 (++)) $ fmap (map snd) common_trees)
+    | vars_len == 0 = Error $ "Constructor collison: " ++ show terms
+    | otherwise = Success (vars!!0, [(vars, cons)])
+    where
+        vars = filter is_Varaible terms
+        cons = filter (not . is_Varaible) terms
+        vars_len = length vars
+        cons_len = length cons
+        common_trees :: Result [(Term, [MultiEquation])]
+        common_trees = join_Results $ map common_tree $ transpose $ map get_terms cons
+
+
+flatten_Result :: Result (Result a) -> Result a
+flatten_Result (Success x) = x
+flatten_Result (Error x) = (Error x)
 
 merge_MEq :: MultiEquation -> MultiEquation -> MultiEquation
 merge_MEq eq1 eq2 = (merge_trms (sort $ fst eq1) (sort $ fst eq2), merge_trms (sort $ snd eq1) (sort $ snd eq2))
@@ -164,7 +182,7 @@ dups xs = foldl1 (||) $ zipWith (==)  xs $ tail xs
 check_MEqs_Collision :: MultiEquation -> MultiEquation -> Bool
 check_MEqs_Collision eq1 eq2 = dups $ merge (fst eq1) (fst eq2)
 
-sys = snd $ take_Success $ fmap2 common_tree term1 term2
+sys = fmap common_tree $ join_Results [term1, term2]
 
 compactificate :: [MultiEquation] -> [MultiEquation]
 compactificate [] = []
@@ -206,9 +224,12 @@ extract_varaibles :: Term -> [Term]
 extract_varaibles (Varaible x) = [(Varaible x)]
 extract_varaibles (Constructor x xs) = foldl1 (++) $ map extract_varaibles xs
 
+-- TODO fix that
 -- U: {x} = (t1, t2), {xi} = ∅
 start_sys = join_Results [
     fmap ((,) [(Varaible $ VaraibleSignature "_")]) $ join_Results [term1, term2],
     fmap (((flip (,)) []) . (map (!!0)) . group . sort) $ 
         fmap2 (++) (fmap extract_varaibles term1) (fmap extract_varaibles term2)]
 
+
+--unify :: Term -> Term
