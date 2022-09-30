@@ -3,6 +3,7 @@
 #include <math.h>
 #include <algorithm>
 #include "random.h"
+#include "Timer.h"
 
 using  fp_type = float;
 
@@ -73,13 +74,19 @@ Matrix<N, P> multiply(Matrix<N, M> m1, Matrix<M, P> m2) {
 int main() {
 	random_seed(10000);
 
-	Matrix<3, 3> m1;
-	Matrix<3, 1> m2;
+	Matrix<1000, 1000> m1;
+	Matrix<1000, 1000> m2;
 	m1.randomize(-10, 10);
 	m2.randomize(-10, 10);
-	m1.display();
-	m2.display();
+
+	Timer timer;
+	timer.start("Casual multiplication 1000x1000");
 	auto m3 = multiply(m1, m2);
-	m3.display();
+	timer.finish();
+
+	//m1.display();
+	//m2.display();
+	//auto m3 = multiply(m1, m2);
+	//m3.display();
 	return 0;
 }
