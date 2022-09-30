@@ -2,6 +2,8 @@
 #include <string>
 #include <math.h>
 #include <algorithm>
+#include <vector>
+#include <thread>
 #include "random.h"
 #include "Timer.h"
 
@@ -39,7 +41,7 @@ public:
 		for (int i = 0; i < N; i++) {
 			for (int j = 0; j < M; j++) {
 				auto str = std::to_string((*this)(i, j));
-				std::cout << str << std::string(std::max(2, (int)(10 - str.length())), ' ');
+				std::cout << str << std::string(std::max(2, (int)(15 - str.length())), ' ');
 			}
 			std::cout << "\n";
 		}
@@ -71,22 +73,54 @@ Matrix<N, P> multiply(Matrix<N, M> m1, Matrix<M, P> m2) {
 	return res;
 }
 
+template <int N, int M, int P>
+void multiply_rows(Matrix<N, M>& m1, Matrix<M, P>& m2, Matrix<M, P>& mr, int l, int r) {
+	for (int i = l; i < r; i++) {
+		for (int j = 0; j < P; j++) {
+			mr(i, j) = multiply_vectors(m1, m2, i, j);
+		}
+	}
+}
+
+template <int N, int M, int P>
+Matrix<N, P> multiply_treads(Matrix<N, M> m1, Matrix<M, P> m2, int threads_number) {
+	Matrix<N, P> res;
+	int region_size = N / threads_number;
+
+	std::vector<std::thread> threads;
+
+	for (int l = 0; l < N; l += region_size) {
+		int r = std::min(l + region_size, N);
+		threads.push_back(std::thread([&](int l, int r) { 
+			multiply_rows(m1, m2, res, l, r); 
+		}, l, r));
+	}
+
+	for (auto& t : threads) {
+		t.join();
+	}
+
+	return res;
+}
+
 int main() {
 	random_seed(10000);
 
-	Matrix<1000, 1000> m1;
-	Matrix<1000, 1000> m2;
+	const int size = 1024;
+	Matrix<size, size> m1;
+	Matrix<size, size> m2;
 	m1.randomize(-10, 10);
 	m2.randomize(-10, 10);
 
 	Timer timer;
-	timer.start("Casual multiplication 1000x1000");
+	timer.start("No threads");
 	auto m3 = multiply(m1, m2);
 	timer.finish();
 
-	//m1.display();
-	//m2.display();
-	//auto m3 = multiply(m1, m2);
-	//m3.display();
+	for (int i = 1; i < 1000; i *= 2) {
+		timer.start(std::to_string(i) + " threads");
+		multiply_treads(m1, m2, i);
+		timer.finish();
+	}
 	return 0;
 }
