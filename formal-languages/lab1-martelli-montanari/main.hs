@@ -1,13 +1,22 @@
+import System.IO
+import Debug.Trace
 import Data.Char(digitToInt)
 import Data.List
 import UnitTesting
 import qualified  Tokenizer as Tkn
 
-data Result a = Error String | Success a deriving (Show)
+data Result a = Error String | Success a
+
+instance Show a => Show (Result a) where
+    show (Success x) = show x
+    show (Error x) = "Error: " ++ x
 
 validate_Result :: (Result Bool) -> Bool
 validate_Result (Success x) = x
 validate_Result (Error x) = False
+
+isError (Error _) = True
+isError (Success _) = False
 
 take_Success (Success x) = x
 
@@ -25,7 +34,7 @@ instance Functor2 Result where
     fmap2 f (Error x) (Error y) = Error (x ++ ", " ++ y)
 
 data ConstructorSignature = ConstructorSignature String Int deriving (Show, Eq, Ord)
-data VaraibleSignature = VaraibleSignature String deriving (Show, Eq, Ord)
+data VariableSignature = VariableSignature String deriving (Show, Eq, Ord)
 
 -- TODO: 
 ---- validate only single letters
@@ -35,57 +44,59 @@ read_ConstructorSignature [] = Error "empty"
 read_ConstructorSignature (Tkn.Name "constructors":Tkn.EqualSign:xs) = read_constructors xs
     where
         read_constructors :: [Tkn.Token] -> Result [ConstructorSignature]
-        read_constructors [] = Error "expected more"
+        read_constructors [] = Error "read_ConstructorSignature: expected more"
         read_constructors (Tkn.Name name : Tkn.ParL : Tkn.Val num : Tkn.ParR : Tkn.Comma : xs) = 
             fmap ((ConstructorSignature name num) :) $ read_constructors xs
         read_constructors [Tkn.Name name, Tkn.ParL, Tkn.Val num, Tkn.ParR] = 
             Success [ConstructorSignature name num]
-        read_constructors _ = Error "fucked up signature"
-read_ConstructorSignature _ = Error "bullshit tokens"
+        read_constructors _ = Error "read_ConstructorSignature: fucked up signature"
+read_ConstructorSignature _ = Error "read_ConstructorSignature: bullshit tokens"
 
 --                           Input      Output
-read_VaraibleSignature :: [Tkn.Token] -> Result [VaraibleSignature]
-read_VaraibleSignature [] = Error "empty"
-read_VaraibleSignature (Tkn.Name "varaibles":Tkn.EqualSign:xs) = read_varaibles xs
+read_VariableSignature :: [Tkn.Token] -> Result [VariableSignature]
+read_VariableSignature [] = Error "empty"
+read_VariableSignature (Tkn.Name "variables":Tkn.EqualSign:xs) = read_variables xs
     where
-        read_varaibles :: [Tkn.Token] -> Result [VaraibleSignature]
-        read_varaibles [] = Error "expected more"
-        read_varaibles (Tkn.Name name : Tkn.Comma : xs) = 
-            fmap ((VaraibleSignature name) :) $ read_varaibles xs
-        read_varaibles [Tkn.Name name] = 
-            Success [VaraibleSignature name]
-        read_varaibles _ = Error "fucked up signature"
-read_VaraibleSignature _ = Error "bullshit tokens"
+        read_variables :: [Tkn.Token] -> Result [VariableSignature]
+        read_variables [] = Error "read_VariableSignature: expected more"
+        read_variables (Tkn.Name name : Tkn.Comma : xs) = 
+            fmap ((VariableSignature name) :) $ read_variables xs
+        read_variables [Tkn.Name name] = 
+            Success [VariableSignature name]
+        read_variables _ = Error "read_VariableSignature: fucked up signature"
+read_VariableSignature _ = Error "read_VariableSignature:bullshit tokens"
 
-data Term = Varaible VaraibleSignature | Constructor ConstructorSignature [Term] deriving (Eq, Ord)
+data Term = Variable VariableSignature | Constructor ConstructorSignature [Term] deriving (Eq, Ord)
 instance Show Term where
-    show (Varaible (VaraibleSignature x)) = x
+    show (Variable (VariableSignature x)) = x
+    show (Constructor (ConstructorSignature f _) []) = f ++ "()"
     show (Constructor (ConstructorSignature f _) xs) = 
         f ++ "(" ++ (foldl1 (\a b->a++","++b) $ map show xs) ++ ")"
 
 get_ConstructorSignature (Constructor s _) = s
 get_terms (Constructor _ ts) = ts
-get_VaraibleSignature (Varaible s) = s
+get_VariableSignature (Variable s) = s
 
+is_in_list x [] = False
 is_in_list x xs = foldl1 (||) $ map (==x) xs
 
---               Tokens         Possible constructors     Possible varaibles     Term          Rest tokens
-read_Varaible :: [Tkn.Token] -> [ConstructorSignature] -> [VaraibleSignature] -> (Result Term, [Tkn.Token])
-read_Varaible (Tkn.Name name : xs) cns vrs = 
+--               Tokens         Possible constructors     Possible variables     Term          Rest tokens
+read_Variable :: [Tkn.Token] -> [ConstructorSignature] -> [VariableSignature] -> (Result Term, [Tkn.Token])
+read_Variable (Tkn.Name name : xs) cns vrs = 
     ((if is_in_list vrsgn vrs 
-        then Success $ Varaible vrsgn 
-        else Error "Invalid signature"), 
+        then Success $ Variable vrsgn 
+        else Error "read_Variable: Invalid signature"), 
     xs)
     where
-        vrsgn = VaraibleSignature name
-read_Varaible xs _ _ = (Error "expected Tkn.Name", xs)
+        vrsgn = VariableSignature name
+read_Variable xs _ _ = (Error "expected Tkn.Name", xs)
 
---                  Tokens         Possible constructors     Possible varaibles     Term          Rest tokens
-read_Constructor :: [Tkn.Token] -> [ConstructorSignature] -> [VaraibleSignature] -> (Result Term, [Tkn.Token])
+--                  Tokens         Possible constructors     Possible variables     Term          Rest tokens
+read_Constructor :: [Tkn.Token] -> [ConstructorSignature] -> [VariableSignature] -> (Result Term, [Tkn.Token])
 read_Constructor (Tkn.Name name : Tkn.ParL : xs) cns vrs = 
     ((if validate_Result $ fmap2 (\a b-> a b) (fmap is_in_list cnsgn) (Success cns)
         then fmap2 (\a b-> a b) (fmap Constructor cnsgn) (fst terms) -- try fmap, not fmap2
-        else Error "Invalid signature"),
+        else Error "read_Constructor: Invalid signature"),
     (snd terms))
     where
         read_terms :: [Tkn.Token] -> (Result [Term], [Tkn.Token])
@@ -100,20 +111,19 @@ read_Constructor (Tkn.Name name : Tkn.ParL : xs) cns vrs =
         cnsgn = fmap (ConstructorSignature name) (fmap length $ fst terms)
 read_Constructor xs _ _ = (Error "expected Tkn.Name", xs)
 
---           Tokens         Possible constructors     Possible varaibles     Term          Rest tokens
-_read_Term :: [Tkn.Token] -> [ConstructorSignature] -> [VaraibleSignature] -> (Result Term, [Tkn.Token])
+--           Tokens         Possible constructors     Possible variables     Term          Rest tokens
+_read_Term :: [Tkn.Token] -> [ConstructorSignature] -> [VariableSignature] -> (Result Term, [Tkn.Token])
 _read_Term (Tkn.Name name : Tkn.ParL : xs) = read_Constructor (Tkn.Name name : Tkn.ParL : xs)
-_read_Term xs = read_Varaible xs
+_read_Term xs = read_Variable xs
 
 read_Term str cns vrs = fst $ _read_Term (Tkn.tokenize str) cns vrs
 
 constructors = take_Success $ read_ConstructorSignature $ Tkn.tokenize "constructors = f(2), h(2), g(1)"
-varaibles = take_Success $ read_VaraibleSignature $ Tkn.tokenize "varaibles = x, y, x1, x2, x3, x4, x5, x6, x7"
-term1 = read_Term "f(g(x3), h(x4, g(x5)))" constructors varaibles
-term2 = read_Term "f(x1, h(g(g(x6)), x7)))" constructors varaibles
-term3 = read_Term "f(x2,h(x4,x7))" constructors varaibles
+variables = take_Success $ read_VariableSignature $ Tkn.tokenize "variables = x, y, x1, x2, x3, x4, x5, x6, x7"
+term1 = read_Term "f(g(x3), h(x4, g(x5)))" constructors variables
+term2 = read_Term "f(g(x3), h(x4, g(x5)))" constructors variables
 
-[x,y,x1,x2,x3,x4,x5,x6,x7] = map Varaible varaibles
+[x,y,x1,x2,x3,x4,x5,x6,x7] = map Variable variables
 
 join_Results :: [Result x] -> Result [x]
 join_Results [] = Success []
@@ -132,23 +142,25 @@ instance {-# OVERLAPPING #-} Show [MultiEquation] where
     show [] = "{}"
     show ms = "{\n  " ++ (foldl1 (\v1 v2 -> v1 ++ ",\n  " ++ v2) $ map show ms) ++ "\n}"
 
-is_Varaible :: Term -> Bool
-is_Varaible (Varaible _) = True
-is_Varaible (Constructor _ _) = False
+is_Variable :: Term -> Bool
+is_Variable (Variable _) = True
+is_Variable (Constructor _ _) = False
 
 allTheSame :: (Eq a) => [a] -> Bool
+allTheSame [] = True
 allTheSame xs = and $ map (== head xs) (tail xs)
 
 common_tree :: [Term] -> Result (Term, [MultiEquation])
+common_tree [] = Error "no terms given"
 common_tree terms
     | vars_len == 0 && (allTheSame $ map get_ConstructorSignature cons) = fmap2 (,)
         (fmap (Constructor $ get_ConstructorSignature $ cons!!0) $ fmap (map fst) common_trees)
-        (fmap (foldl1 (++)) $ fmap (map snd) common_trees)
+        (fmap (foldl (++) []) $ fmap (map snd) common_trees)
     | vars_len == 0 = Error $ "Constructor collison: " ++ show terms
     | otherwise = Success (vars!!0, [(vars, cons)])
     where
-        vars = filter is_Varaible terms
-        cons = filter (not . is_Varaible) terms
+        vars = filter is_Variable terms
+        cons = filter (not . is_Variable) terms
         vars_len = length vars
         cons_len = length cons
         common_trees :: Result [(Term, [MultiEquation])]
@@ -177,12 +189,15 @@ merge (x:xs) (y:ys)
   | x <= y = x : merge xs (y:ys)
   | otherwise = y : merge (x:xs) ys
 
+dups [] = False
+dups [_] = False
 dups xs = foldl1 (||) $ zipWith (==)  xs $ tail xs
 
+-- check if MEq have common variables
 check_MEqs_Collision :: MultiEquation -> MultiEquation -> Bool
 check_MEqs_Collision eq1 eq2 = dups $ merge (fst eq1) (fst eq2)
 
-sys = fmap common_tree $ join_Results [term1, term2]
+--sys = fmap common_tree $ join_Results [term1, term2]
 
 compactificate :: [MultiEquation] -> [MultiEquation]
 compactificate [] = []
@@ -199,11 +214,11 @@ compactificate (x:xs) = foldl1 merge_MEq (x:intrs) : compactificate rest
 -- add to 
 
 term_in_MEq :: Term -> MultiEquation -> Bool
-term_in_MEq t (vs, cs) = foldl1 (||) $ map findt $ vs ++ cs
+term_in_MEq t (vs, cs) = foldl (||) False $ map findt $ vs ++ cs
     where
         findt :: Term -> Bool
-        findt (Varaible x) = (Varaible x) == t
-        findt (Constructor s ts) = ((Constructor s ts) == t) || (foldl1 (||) $ map findt ts)
+        findt (Variable x) = (Variable x) == t
+        findt (Constructor s ts) = ((Constructor s ts) == t) || (foldl (||) False $ map findt ts)
 
 choose_MEq :: [MultiEquation] -> (Result MultiEquation)
 choose_MEq ms
@@ -212,7 +227,7 @@ choose_MEq ms
     where
         check_MEq :: MultiEquation -> [MultiEquation] -> Bool
         check_MEq (vs, _) ms = 1 == (length $ filter (\x->x) $ 
-            map (\meq -> foldl1 (||) [term_in_MEq x meq | x <- vs]) ms)
+            map (\meq -> foldl (||) False [term_in_MEq x meq | x <- vs]) ms)
         filtered = filter ((flip check_MEq) ms) ms 
 
 replace y z [] = []
@@ -220,16 +235,51 @@ replace y z (x:xs)
   | x==y           = z:replace y z xs
   | otherwise      = x:replace y z xs
 
-extract_varaibles :: Term -> [Term]
-extract_varaibles (Varaible x) = [(Varaible x)]
-extract_varaibles (Constructor x xs) = foldl1 (++) $ map extract_varaibles xs
+extract_variables :: Term -> [Term]
+extract_variables (Variable x) = [(Variable x)]
+extract_variables (Constructor x xs) = foldl (++) [] $ map extract_variables xs
 
--- TODO fix that
 -- U: {x} = (t1, t2), {xi} = ∅
-start_sys = join_Results [
-    fmap ((,) [(Varaible $ VaraibleSignature "_")]) $ join_Results [term1, term2],
-    fmap (((flip (,)) []) . (map (!!0)) . group . sort) $ 
-        fmap2 (++) (fmap extract_varaibles term1) (fmap extract_varaibles term2)]
+start_sys term1 term2 = fmap2 (:)
+    (fmap ((,) [(Variable $ VariableSignature "_")]) $ join_Results [term1, term2]) $
+    fmap ((map (\vs -> ([vs!!0],[]))) .  group . sort) $ 
+        fmap2 (++) (fmap extract_variables term1) (fmap extract_variables term2)
+
+--     fmap ((map (\vs -> ([vs!!0],[]))) .  group . sort) $ 
+pair_Results :: Result (a, b) -> (Result a, Result b)
+pair_Results x = (fmap fst x, fmap snd x)
+
+unpair_Results :: (Result a, Result b) -> Result (a, b)
+unpair_Results (a, b) = fmap2 (,) a b
+
+unify_sys :: [MultiEquation] -> Result [MultiEquation]
+unify_sys sys
+    | sys == [] = Success []
+    | otherwise = fmap2 (:) meq $ flatten_Result $ fmap unify_sys sys_new
+    where
+        chosen = choose_MEq sys
+        (c, f) = pair_Results $ flatten_Result $ fmap (common_tree . snd) chosen
+        replacer = unpair_Results $ (fmap fst chosen, fmap (:[]) c)
+        sys_reduced = fmap compactificate $ fmap2 (++) f $ fmap2 (\a b -> replace a b sys) chosen replacer
+        meq | isError chosen = chosen
+            | otherwise = fmap ((!!0) . (filter $ check_MEqs_Collision $ take_Success chosen)) sys_reduced
+        sys_new :: Result [MultiEquation]
+        sys_new  = fmap compactificate $ fmap2 delete meq sys_reduced
+
+--               Cons      Vars      Term1     Term2     Output
+process_input :: String -> String -> String -> String -> String
+process_input cons_str vars_str term1_str term2_str = 
+    show $ fmap unify_sys $ flatten_Result $ fmap2 start_sys term1 term2
+    where
+        cons = read_ConstructorSignature $ Tkn.tokenize cons_str
+        vars = read_VariableSignature $ Tkn.tokenize vars_str
+        term1 = fmap2 (read_Term term1_str) cons vars
+        term2 = fmap2 (read_Term term2_str) cons vars
 
 
---unify :: Term -> Term
+main = do
+    cons_str <- getLine
+    vars_str <- getLine
+    fst_term_str <- getLine
+    snd_term_str <- getLine
+    putStrLn $ process_input cons_str vars_str fst_term_str snd_term_str

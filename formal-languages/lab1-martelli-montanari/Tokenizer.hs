@@ -27,7 +27,7 @@ read_val str acc  = (\(n, s) -> (read $ reverse n, s)) $ read_val_stringed str a
             | otherwise = (acc, x:xs)
 
 tokenize :: String -> [Token]
-tokenize str = reverse $ read [] str
+tokenize str = reverse $ read [] $ filter (\x -> x/='\n' && x/='\r') str
     where
         read acc [] = acc
         read acc (' ':str) = read acc str
