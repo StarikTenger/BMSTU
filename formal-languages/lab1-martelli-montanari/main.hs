@@ -69,7 +69,7 @@ read_VariableSignature _ = Error "read_VariableSignature:bullshit tokens"
 data Term = Variable VariableSignature | Constructor ConstructorSignature [Term] deriving (Eq, Ord)
 instance Show Term where
     show (Variable (VariableSignature x)) = x
-    show (Constructor (ConstructorSignature f _) []) = f ++ "()"
+    show (Constructor (ConstructorSignature f _) []) = f
     show (Constructor (ConstructorSignature f _) xs) = 
         f ++ "(" ++ (foldl1 (\a b->a++","++b) $ map show xs) ++ ")"
 
@@ -85,10 +85,13 @@ read_Variable :: [Tkn.Token] -> [ConstructorSignature] -> [VariableSignature] ->
 read_Variable (Tkn.Name name : xs) cns vrs = 
     ((if is_in_list vrsgn vrs 
         then Success $ Variable vrsgn 
-        else Error "read_Variable: Invalid signature"), 
+        else (if is_in_list cnsgn cns
+            then Success $ Constructor cnsgn []
+            else Error "read_Variable: Invalid signature")), 
     xs)
     where
         vrsgn = VariableSignature name
+        cnsgn = ConstructorSignature name 0
 read_Variable xs _ _ = (Error "expected Tkn.Name", xs)
 
 --                  Tokens         Possible constructors     Possible variables     Term          Rest tokens
@@ -116,14 +119,15 @@ _read_Term :: [Tkn.Token] -> [ConstructorSignature] -> [VariableSignature] -> (R
 _read_Term (Tkn.Name name : Tkn.ParL : xs) = read_Constructor (Tkn.Name name : Tkn.ParL : xs)
 _read_Term xs = read_Variable xs
 
-read_Term str cns vrs = fst $ _read_Term (Tkn.tokenize str) cns vrs
+read_Term1 str cns vrs 
+    | [Tkn.Name "First", Tkn.Name "term", Tkn.Name ":"] `isPrefixOf` tokens = fst $ _read_Term (drop 3 tokens) cns vrs
+    | otherwise = Error "expected: First term:"
+    where tokens = Tkn.tokenize str
 
-constructors = take_Success $ read_ConstructorSignature $ Tkn.tokenize "constructors = f(2), h(2), g(1)"
-variables = take_Success $ read_VariableSignature $ Tkn.tokenize "variables = x, y, x1, x2, x3, x4, x5, x6, x7"
-term1 = read_Term "f(g(x3), h(x4, g(x5)))" constructors variables
-term2 = read_Term "f(g(x3), h(x4, g(x5)))" constructors variables
-
-[x,y,x1,x2,x3,x4,x5,x6,x7] = map Variable variables
+read_Term2 str cns vrs 
+    | [Tkn.Name "Second", Tkn.Name "term", Tkn.Name ":"] `isPrefixOf` tokens = fst $ _read_Term (drop 3 tokens) cns vrs
+    | otherwise = Error "expected: Second term:"
+    where tokens = Tkn.tokenize str
 
 join_Results :: [Result x] -> Result [x]
 join_Results [] = Success []
@@ -273,8 +277,8 @@ process_input cons_str vars_str term1_str term2_str =
     where
         cons = read_ConstructorSignature $ Tkn.tokenize cons_str
         vars = read_VariableSignature $ Tkn.tokenize vars_str
-        term1 = fmap2 (read_Term term1_str) cons vars
-        term2 = fmap2 (read_Term term2_str) cons vars
+        term1 = fmap2 (read_Term1 term1_str) cons vars
+        term2 = fmap2 (read_Term2 term2_str) cons vars
 
 
 main = do
