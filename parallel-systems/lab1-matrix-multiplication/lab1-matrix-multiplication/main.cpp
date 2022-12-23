@@ -6,6 +6,7 @@
 #include <thread>
 #include "random.h"
 #include "Timer.h"
+#include "Table.h"
 
 using  fp_type = float;
 
@@ -103,24 +104,38 @@ Matrix<N, P> multiply_treads(Matrix<N, M> m1, Matrix<M, P> m2, int threads_numbe
 	return res;
 }
 
-int main() {
-	random_seed(10000);
+template <int N>
+void calculate(Table& table) {
+	std::cout << "Start testing " << N << "\n";
 
-	const int size = 1024;
-	Matrix<size, size> m1;
-	Matrix<size, size> m2;
+	Matrix<N, N> m1;
+	Matrix<N, N> m2;
 	m1.randomize(-10, 10);
 	m2.randomize(-10, 10);
 
 	Timer timer;
-	timer.start("No threads");
-	auto m3 = multiply(m1, m2);
-	timer.finish();
 
-	for (int i = 1; i < 1000; i *= 2) {
+	std::vector<int> _v; _v.push_back(N);
+	table.add_row(_v);
+	for (int i = 1; i < N; i *= 2) {
 		timer.start(std::to_string(i) + " threads");
 		multiply_treads(m1, m2, i);
-		timer.finish();
+		auto time = timer.finish();
+		table.add_row({ i, time });
 	}
+}
+
+int main() {
+	int seed = 36046;
+	random_seed(36046);
+
+	Table table;
+	calculate<128>(table);
+	calculate<256>(table);
+	calculate<512>(table);
+	//calculate<1024>(table);
+	//calculate<2048>(table);
+
+	table.save("result.xls");
 	return 0;
 }

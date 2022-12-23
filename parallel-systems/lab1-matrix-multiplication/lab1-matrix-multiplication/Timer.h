@@ -37,5 +37,7 @@ public:
 		for (auto& record : records) {
 			record.first -= time_error;
 		}
+
+		return delta_time;
 	}
 };
