@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include "random.h"
 #include "Matrix.h"
+#include "Timer.h"
 
 using namespace std;
 
@@ -20,7 +21,7 @@ public:
 		eq = _eq;
 		init();
 		for (int i = 0; i < step_limit && !should_stop(); i++) {
-			print();
+			//print();
 			step();
 		}
 	}
@@ -45,15 +46,15 @@ private:
 		for (int i = 0; i < x.size(); i++) {
 			x(i) = random_float(-2, 2, 2);
 		}
-		eq.right_part.print();
+		//eq.right_part.print();
 		r = eq.right_part - eq.coefficients * x;
 		z = r;
-		cout << "r\n";
-		r.print();
+		//cout << "r\n";
+		//r.print();
 	}
 
 	void step() {
-		cout << "\nStep start" << (r * r) << " " << ((eq.coefficients * z) * z) << "\n";
+		//cout << "\nStep start " << (r * r) << " " << ((eq.coefficients * z) * z) << "\n";
 		alpha = (r * r) / ((eq.coefficients * z) * z);
 		x = x + alpha * z;
 		auto r1 = r - alpha * (eq.coefficients * z);
@@ -64,7 +65,7 @@ private:
 
 	bool should_stop() {
 		auto err = deviation(r) / deviation(eq.right_part);
-		cout << err << "\n";
+		//cout << err << "\n";
 		return err < eps;
 	}
 
@@ -78,7 +79,7 @@ private:
 };
 
 int main(int* argc, char** argv) {
-	int n = 5;
+	int n = 2000;
 	Equation eq;
 	eq.coefficients = Matrix(n, n);
 	for (int i = 0; i < n; i++) {
@@ -95,18 +96,21 @@ int main(int* argc, char** argv) {
 	eq.right_part = Vector(n);
 	eq.right_part.fill(n + 1);
 
-	Solver solver;
-	solver.solve(eq);
-	solver.print();
+	Timer timer;
 
-	/*int numtasks, rank;
-
-	MPI_Init(argc, &argv);
-
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_rank(MPI_COMM_WORLD, &numtasks);
-
-	printf("process = %d, total numer of processes = %d\n", rank, numtasks);
-
-	MPI_Finalize();*/
+	int takes = 10;
+	int sum_time = 0;
+	for (int i = 0; i < 10; i++) {
+		Solver solver;
+		timer.start("record " + to_string(i));
+		solver.solve(eq);
+		sum_time += timer.finish();
+	}
+	cout << "Averrage: " << (float)sum_time / takes;
 }
+
+// -- Results --
+// 8 threads 1162.3
+// 4 threads 1426.5
+// 2 threads 2392
+// 1 thread  4588.5 

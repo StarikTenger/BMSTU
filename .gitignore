@@ -367,3 +367,6 @@ FodyWeavers.xsd
 *.caffemodel
 go/*in.txt
 go/*out.txt
+/graphics/report_creator.py
+/graphics/report2.md
+/graphics/report.md

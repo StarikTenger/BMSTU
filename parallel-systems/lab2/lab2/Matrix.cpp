@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <cstring>
 #include <iostream>
+#include <omp.h>
 
 Matrix::Matrix() {}
 
@@ -141,6 +142,7 @@ Vector operator*(const Matrix& l, const Vector& r) {
 
 	Vector v(l.rows());
 
+#pragma omp parallel for num_threads(1)
 	for (int i = 0; i < l.rows(); i++) {
 		double sum = 0;
 		for (int j = 0; j < l.columns(); j++) {

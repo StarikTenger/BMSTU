@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>report.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<p>hardcode.h</p>
+<pre class="hljs"><code><div><span class="hljs-meta">#<span class="hljs-meta-keyword">pragma</span> once</span>
+
+<span class="hljs-keyword">int</span> block_size = <span class="hljs-number">10</span>;
+</div></code></pre>
+<p>main.cpp</p>
+<pre class="hljs"><code><div><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;mpi.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;stdio.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;iostream&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;vector&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;stdexcept&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">"random.h"</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">"Matrix.h"</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">"Timer.h"</span></span>
+
+<span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> <span class="hljs-built_in">std</span>;
+
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Equation</span> {</span>
+	<span class="hljs-comment">// Ax = b</span>
+	Matrix coefficients; <span class="hljs-comment">// A</span>
+	Vector right_part; <span class="hljs-comment">// b</span>
+};
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Solver</span> {</span>
+<span class="hljs-keyword">public</span>:
+	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">solve</span><span class="hljs-params">(<span class="hljs-keyword">const</span> Equation&amp; _eq)</span> </span>{
+		eq = _eq;
+		init();
+		<span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; step_limit &amp;&amp; !should_stop(); i++) {
+			<span class="hljs-comment">//print();</span>
+			<span class="hljs-built_in">step</span>();
+		}
+	}
+
+	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">print</span><span class="hljs-params">()</span> </span>{
+		<span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; x.<span class="hljs-built_in">size</span>(); i++) {
+			<span class="hljs-built_in">cout</span> &lt;&lt; x(i) &lt;&lt; <span class="hljs-string">" "</span>;
+		}
+	}
+
+<span class="hljs-keyword">private</span>:
+	Equation eq;
+	Vector r;
+	Vector z;
+	Vector x;
+	<span class="hljs-keyword">int</span> step_limit = <span class="hljs-number">1000</span>;
+	<span class="hljs-keyword">double</span> alpha = <span class="hljs-number">0</span>;
+	<span class="hljs-keyword">double</span> beta = <span class="hljs-number">0</span>;
+	<span class="hljs-keyword">double</span> eps = <span class="hljs-number">1e-5</span>;
+	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">init</span><span class="hljs-params">()</span> </span>{
+		x = Vector(eq.right_part.<span class="hljs-built_in">size</span>());
+		<span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; x.<span class="hljs-built_in">size</span>(); i++) {
+			x(i) = random_float(<span class="hljs-number">-2</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>);
+		}
+		<span class="hljs-comment">//eq.right_part.print();</span>
+		r = eq.right_part - eq.coefficients * x;
+		z = r;
+		<span class="hljs-comment">//cout &lt;&lt; "r\n";</span>
+		<span class="hljs-comment">//r.print();</span>
+	}
+
+	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">step</span><span class="hljs-params">()</span> </span>{
+		<span class="hljs-comment">//cout &lt;&lt; "\nStep start " &lt;&lt; (r * r) &lt;&lt; " " &lt;&lt; ((eq.coefficients * z) * z) &lt;&lt; "\n";</span>
+		alpha = (r * r) / ((eq.coefficients * z) * z);
+		x = x + alpha * z;
+		<span class="hljs-keyword">auto</span> r1 = r - alpha * (eq.coefficients * z);
+		beta = (r1 * r1) / (r * r);
+		z = r1 + beta * z;
+		r = r1;
+	}
+
+	<span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">should_stop</span><span class="hljs-params">()</span> </span>{
+		<span class="hljs-keyword">auto</span> err = deviation(r) / deviation(eq.right_part);
+		<span class="hljs-comment">//cout &lt;&lt; err &lt;&lt; "\n";</span>
+		<span class="hljs-keyword">return</span> err &lt; eps;
+	}
+
+	<span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">deviation</span><span class="hljs-params">(<span class="hljs-keyword">const</span> Vector&amp; vec)</span> </span>{
+		<span class="hljs-keyword">double</span> sum = <span class="hljs-number">0</span>;
+		<span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; vec.<span class="hljs-built_in">size</span>(); i++) {
+			sum += vec(i) * vec(i);
+		}
+		<span class="hljs-keyword">return</span> <span class="hljs-built_in">sqrt</span>(sum);
+	}
+};
+
+<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">(<span class="hljs-keyword">int</span>* argc, <span class="hljs-keyword">char</span>** argv)</span> </span>{
+	<span class="hljs-keyword">int</span> n = <span class="hljs-number">2000</span>;
+	Equation eq;
+	eq.coefficients = Matrix(n, n);
+	<span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; n; i++) {
+		<span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> j = <span class="hljs-number">0</span>; j &lt; n; j++) {
+			<span class="hljs-keyword">if</span> (i == j) {
+				eq.coefficients(i, j) = <span class="hljs-number">2.0</span>;
+			}
+			<span class="hljs-keyword">else</span> {
+				eq.coefficients(i, j) = <span class="hljs-number">1.0</span>;
+			}
+		}
+	}
+
+	eq.right_part = Vector(n);
+	eq.right_part.<span class="hljs-built_in">fill</span>(n + <span class="hljs-number">1</span>);
+
+	Timer timer;
+
+	<span class="hljs-keyword">int</span> takes = <span class="hljs-number">10</span>;
+	<span class="hljs-keyword">int</span> sum_time = <span class="hljs-number">0</span>;
+	<span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10</span>; i++) {
+		Solver solver;
+		timer.start(<span class="hljs-string">"record "</span> + to_string(i));
+		solver.solve(eq);
+		sum_time += timer.finish();
+	}
+	<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"Averrage: "</span> &lt;&lt; (<span class="hljs-keyword">float</span>)sum_time / takes;
+}
+
+<span class="hljs-comment">// -- Results --</span>
+<span class="hljs-comment">// 8 threads 1162.3</span>
+<span class="hljs-comment">// 4 threads 1426.5</span>
+<span class="hljs-comment">// 2 threads 2392</span>
+<span class="hljs-comment">// 1 thread  4588.5 </span>
+</div></code></pre>
+<p>Matrix.cpp</p>
+<pre class="hljs"><code><div><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">"Matrix.h"</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;stdexcept&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;cstring&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;iostream&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;omp.h&gt;</span></span>
+
+Matrix::Matrix() {}
+
+Matrix::Matrix(<span class="hljs-keyword">int</span> rows, <span class="hljs-keyword">int</span> columns) : __rows(rows), __columns(columns) {
+	__data = <span class="hljs-keyword">new</span> <span class="hljs-keyword">double</span>[rows * columns];
+	<span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; columns * rows; i++) {
+		__data[i] = <span class="hljs-number">0</span>;
+	}
+}
+
+Matrix::~Matrix() {
+	<span class="hljs-keyword">if</span> (__data) {
+		<span class="hljs-keyword">delete</span> __data;
+	}
+}
+
+Matrix::Matrix(<span class="hljs-keyword">const</span> Matrix&amp; m) {
+	__rows = m.__rows;
+	__columns = m.__columns;
+	__data = <span class="hljs-keyword">new</span> <span class="hljs-keyword">double</span>[m.__rows * m.__columns];
+	<span class="hljs-built_in">std</span>::copy(m.__data, m.__data + m.__rows * m.__columns, __data);
+}
+
+Matrix&amp; Matrix::<span class="hljs-keyword">operator</span>=(<span class="hljs-keyword">const</span> Matrix&amp; m) {
+	<span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span> == &amp;m) {
+		<span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span>;
+	}
+
+	__rows = m.__rows;
+	__columns = m.__columns;
+	<span class="hljs-keyword">delete</span> __data;
+	__data = <span class="hljs-keyword">new</span> <span class="hljs-keyword">double</span>[m.__rows * m.__columns];
+	<span class="hljs-built_in">std</span>::copy(m.__data, m.__data + m.__rows * m.__columns, __data);
+	<span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span>;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">Matrix::fill</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span>&amp; value)</span> </span>{
+	<span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; __columns * __rows; i++) {
+		__data[i] = value;
+	}
+}
+
+<span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">Matrix::operator</span><span class="hljs-params">()</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">int</span>&amp; i, <span class="hljs-keyword">const</span> <span class="hljs-keyword">int</span>&amp; j)</span> <span class="hljs-keyword">const</span> </span>{
+	<span class="hljs-keyword">return</span> __data[i * __columns + j];
+}
+
+<span class="hljs-function"><span class="hljs-keyword">double</span>&amp; <span class="hljs-title">Matrix::operator</span><span class="hljs-params">()</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">int</span>&amp; i, <span class="hljs-keyword">const</span> <span class="hljs-keyword">int</span>&amp; j)</span> </span>{
+	<span class="hljs-keyword">return</span> __data[i * __columns + j];
+}
+
+<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">Matrix::rows</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>{
+	<span class="hljs-keyword">return</span> __rows;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">Matrix::columns</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>{
+	<span class="hljs-keyword">return</span> __columns;
+}
+
+Vector::Vector() {}
+
+Vector::Vector(<span class="hljs-keyword">int</span> <span class="hljs-built_in">size</span>) : __size(<span class="hljs-built_in">size</span>) {
+	__data = Matrix(__size, <span class="hljs-number">1</span>);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">Vector::fill</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span>&amp; value)</span> </span>{
+	__data.<span class="hljs-built_in">fill</span>(value);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">Vector::operator</span><span class="hljs-params">()</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">int</span>&amp; i)</span> <span class="hljs-keyword">const</span> </span>{
+	<span class="hljs-keyword">return</span> __data(i, <span class="hljs-number">0</span>);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">double</span>&amp; <span class="hljs-title">Vector::operator</span><span class="hljs-params">()</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">int</span>&amp; i)</span> </span>{
+	<span class="hljs-keyword">return</span> __data(i, <span class="hljs-number">0</span>);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">Vector::size</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>{
+	<span class="hljs-keyword">return</span> __size;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">Vector::print</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span> </span>{
+	<span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-built_in">size</span>(); i++) {
+		<span class="hljs-built_in">std</span>::<span class="hljs-built_in">cout</span> &lt;&lt; (*<span class="hljs-keyword">this</span>)(i) &lt;&lt; <span class="hljs-string">" "</span>;
+	}
+	<span class="hljs-built_in">std</span>::<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"\n"</span>;
+}
+
+<span class="hljs-keyword">double</span> <span class="hljs-keyword">operator</span>*(<span class="hljs-keyword">const</span> Vector&amp; l, <span class="hljs-keyword">const</span> Vector&amp; r) {
+	<span class="hljs-keyword">if</span> (l.<span class="hljs-built_in">size</span>() != r.<span class="hljs-built_in">size</span>()) {
+		<span class="hljs-keyword">throw</span> <span class="hljs-built_in">std</span>::invalid_argument(<span class="hljs-string">"size mismatch"</span>);
+	}
+
+	<span class="hljs-keyword">double</span> res = <span class="hljs-number">0</span>;
+	<span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; l.<span class="hljs-built_in">size</span>(); i++) {
+		res += l(i) * r(i);
+	}
+
+	<span class="hljs-keyword">return</span> res;
+}
+
+Vector <span class="hljs-keyword">operator</span>*(<span class="hljs-keyword">double</span> l, <span class="hljs-keyword">const</span> Vector&amp; r) {
+	Vector v = r;
+	<span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; v.<span class="hljs-built_in">size</span>(); i++) {
+		v(i) *= l;
+	}
+	<span class="hljs-keyword">return</span> v;
+}
+
+Vector <span class="hljs-keyword">operator</span>+(<span class="hljs-keyword">const</span> Vector&amp; l, <span class="hljs-keyword">const</span> Vector&amp; r) {
+	<span class="hljs-keyword">if</span> (l.<span class="hljs-built_in">size</span>() != r.<span class="hljs-built_in">size</span>()) {
+		<span class="hljs-keyword">throw</span> <span class="hljs-built_in">std</span>::invalid_argument(<span class="hljs-string">"size mismatch"</span>);
+	}
+
+	Vector v = l;
+	<span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; v.<span class="hljs-built_in">size</span>(); i++) {
+		v(i) += r(i);
+	}
+	<span class="hljs-keyword">return</span> v;
+}
+
+Vector <span class="hljs-keyword">operator</span>-(<span class="hljs-keyword">const</span> Vector&amp; l, <span class="hljs-keyword">const</span> Vector&amp; r) {
+	<span class="hljs-keyword">if</span> (l.<span class="hljs-built_in">size</span>() != r.<span class="hljs-built_in">size</span>()) {
+		<span class="hljs-keyword">throw</span> <span class="hljs-built_in">std</span>::invalid_argument(<span class="hljs-string">"size mismatch"</span>);
+	}
+
+	Vector v = l;
+	<span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; v.<span class="hljs-built_in">size</span>(); i++) {
+		v(i) -= r(i);
+	}
+	<span class="hljs-keyword">return</span> v;
+}
+
+Vector <span class="hljs-keyword">operator</span>*(<span class="hljs-keyword">const</span> Matrix&amp; l, <span class="hljs-keyword">const</span> Vector&amp; r) {
+	<span class="hljs-keyword">if</span> (l.columns() != r.<span class="hljs-built_in">size</span>()) {
+		<span class="hljs-keyword">throw</span> <span class="hljs-built_in">std</span>::invalid_argument(<span class="hljs-string">"size mismatch"</span>);
+	}
+
+	<span class="hljs-function">Vector <span class="hljs-title">v</span><span class="hljs-params">(l.rows())</span></span>;
+
+<span class="hljs-meta">#<span class="hljs-meta-keyword">pragma</span> omp parallel for num_threads(1)</span>
+	<span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; l.rows(); i++) {
+		<span class="hljs-keyword">double</span> sum = <span class="hljs-number">0</span>;
+		<span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> j = <span class="hljs-number">0</span>; j &lt; l.columns(); j++) {
+			sum += l(i, j) * r(j);
+		}
+		v(i) = sum;
+	}
+
+	<span class="hljs-keyword">return</span> v;
+}
+
+</div></code></pre>
+<p>Matrix.h</p>
+<pre class="hljs"><code><div><span class="hljs-meta">#<span class="hljs-meta-keyword">pragma</span> once</span>
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Matrix</span> {</span>
+<span class="hljs-keyword">public</span>:
+	<span class="hljs-comment">// Default constructor</span>
+	Matrix();
+
+	<span class="hljs-comment">// Constructor</span>
+	Matrix(<span class="hljs-keyword">int</span> rows, <span class="hljs-keyword">int</span> columns);
+
+	<span class="hljs-comment">// Destructor</span>
+	~Matrix();
+
+	<span class="hljs-comment">// Copy constructor</span>
+	Matrix(<span class="hljs-keyword">const</span> Matrix&amp; m);
+
+	Matrix&amp; <span class="hljs-keyword">operator</span>=(<span class="hljs-keyword">const</span> Matrix&amp; m);
+
+	<span class="hljs-comment">// Fill matrix with value</span>
+	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">fill</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span>&amp; value)</span></span>;
+
+	<span class="hljs-comment">// Assign matrix element</span>
+	<span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">operator</span><span class="hljs-params">()</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">int</span>&amp; i, <span class="hljs-keyword">const</span> <span class="hljs-keyword">int</span>&amp; j)</span> <span class="hljs-keyword">const</span></span>;
+	<span class="hljs-function"><span class="hljs-keyword">double</span>&amp; <span class="hljs-title">operator</span><span class="hljs-params">()</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">int</span>&amp; i, <span class="hljs-keyword">const</span> <span class="hljs-keyword">int</span>&amp; j)</span></span>;
+
+	<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">rows</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;
+	<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">columns</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;
+
+	<span class="hljs-keyword">friend</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Vector</span>;</span>
+<span class="hljs-keyword">private</span>:
+	<span class="hljs-keyword">int</span> __rows = <span class="hljs-number">0</span>;
+	<span class="hljs-keyword">int</span> __columns = <span class="hljs-number">0</span>;
+	<span class="hljs-keyword">double</span>* __data = <span class="hljs-literal">nullptr</span>;
+};
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Vector</span> {</span>
+<span class="hljs-keyword">public</span>:
+	<span class="hljs-comment">// Default constructor</span>
+	Vector();
+
+	<span class="hljs-comment">// Constructor</span>
+	Vector(<span class="hljs-keyword">int</span> <span class="hljs-built_in">size</span>);
+
+	<span class="hljs-comment">// Fill vector with value</span>
+	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">fill</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">double</span>&amp; value)</span></span>;
+
+	<span class="hljs-comment">// Assign vector element</span>
+	<span class="hljs-function"><span class="hljs-keyword">double</span> <span class="hljs-title">operator</span><span class="hljs-params">()</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">int</span>&amp; i)</span> <span class="hljs-keyword">const</span></span>;
+	<span class="hljs-function"><span class="hljs-keyword">double</span>&amp; <span class="hljs-title">operator</span><span class="hljs-params">()</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">int</span>&amp; i)</span></span>;
+
+	<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">size</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;
+
+	<span class="hljs-comment">// Dot product</span>
+	<span class="hljs-keyword">friend</span> <span class="hljs-keyword">double</span> <span class="hljs-keyword">operator</span>*(<span class="hljs-keyword">const</span> Vector&amp; l, <span class="hljs-keyword">const</span> Vector&amp; r);
+
+	<span class="hljs-comment">// Multiply vector by number</span>
+	<span class="hljs-keyword">friend</span> Vector <span class="hljs-keyword">operator</span>*(<span class="hljs-keyword">double</span> l, <span class="hljs-keyword">const</span> Vector&amp; r);
+
+	<span class="hljs-comment">// Summ</span>
+	<span class="hljs-keyword">friend</span> Vector <span class="hljs-keyword">operator</span>+(<span class="hljs-keyword">const</span> Vector&amp; l, <span class="hljs-keyword">const</span> Vector&amp; r);
+
+	<span class="hljs-comment">// Difference</span>
+	<span class="hljs-keyword">friend</span> Vector <span class="hljs-keyword">operator</span>-(<span class="hljs-keyword">const</span> Vector&amp; l, <span class="hljs-keyword">const</span> Vector&amp; r);
+
+	<span class="hljs-comment">// Multiply matrix by vector</span>
+	<span class="hljs-keyword">friend</span> Vector <span class="hljs-keyword">operator</span>*(<span class="hljs-keyword">const</span> Matrix&amp; l, <span class="hljs-keyword">const</span> Vector&amp; r);
+
+	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">print</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;
+<span class="hljs-keyword">private</span>:
+	<span class="hljs-keyword">int</span> __size = <span class="hljs-number">0</span>;
+	Matrix __data;
+};
+</div></code></pre>
+<p>random.h</p>
+<pre class="hljs"><code><div><span class="hljs-meta">#<span class="hljs-meta-keyword">pragma</span> once</span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;cmath&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;cstdlib&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;sys/timeb.h&gt;</span></span>
+
+<span class="hljs-function"><span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> <span class="hljs-title">binpow</span><span class="hljs-params">(<span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> a, <span class="hljs-keyword">int</span> b)</span> </span>{
+	<span class="hljs-keyword">if</span> (b == <span class="hljs-number">0</span>)
+		<span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+	<span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> ans = binpow(a, b / <span class="hljs-number">2</span>);
+	<span class="hljs-keyword">return</span> ans * ans * ((b % <span class="hljs-number">2</span>) ? a : <span class="hljs-number">1</span>);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">random_seed</span><span class="hljs-params">(<span class="hljs-keyword">int</span> seed)</span> </span>{
+	srand(seed);
+}
+<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">random_int</span><span class="hljs-params">(<span class="hljs-keyword">int</span> <span class="hljs-built_in">min</span>, <span class="hljs-keyword">int</span> <span class="hljs-built_in">max</span>)</span> </span>{
+	<span class="hljs-keyword">return</span> rand() % (<span class="hljs-built_in">max</span> + <span class="hljs-number">1</span> - <span class="hljs-built_in">min</span>) + <span class="hljs-built_in">min</span>;
+}
+<span class="hljs-function"><span class="hljs-keyword">float</span> <span class="hljs-title">random_float</span><span class="hljs-params">(<span class="hljs-keyword">float</span> <span class="hljs-built_in">min</span>, <span class="hljs-keyword">float</span> <span class="hljs-built_in">max</span>, <span class="hljs-keyword">int</span> digits)</span> </span>{
+	<span class="hljs-keyword">float</span> k = binpow(<span class="hljs-number">10</span>, digits);
+	<span class="hljs-keyword">return</span> <span class="hljs-keyword">float</span>(random_int(<span class="hljs-keyword">int</span>(<span class="hljs-built_in">min</span> * k), <span class="hljs-keyword">int</span>(<span class="hljs-built_in">max</span> * k))) / k;
+}
+</div></code></pre>
+<p>Timer.h</p>
+<pre class="hljs"><code><div><span class="hljs-meta">#<span class="hljs-meta-keyword">pragma</span> once</span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;cmath&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;cstdlib&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;iostream&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;deque&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;string&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;sys/timeb.h&gt;</span></span>
+
+<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">get_milli_count</span><span class="hljs-params">()</span> </span>{
+	timeb tb;
+	ftime(&amp;tb);
+	<span class="hljs-keyword">int</span> nCount = tb.millitm + (tb.time &amp; <span class="hljs-number">0xfffff</span>) * <span class="hljs-number">1000</span>;
+	<span class="hljs-keyword">return</span> nCount;
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Timer</span> {</span>
+<span class="hljs-keyword">private</span>:
+	<span class="hljs-built_in">std</span>::<span class="hljs-built_in">deque</span>&lt;<span class="hljs-built_in">std</span>::pair&lt;<span class="hljs-keyword">int</span>, <span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span>&gt;&gt; records;
+
+<span class="hljs-keyword">public</span>:
+	Timer() {}
+
+	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">start</span><span class="hljs-params">(<span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> record_name)</span> </span>{
+		records.push_back({ get_milli_count(), record_name });
+	}
+
+	<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">finish</span><span class="hljs-params">()</span> </span>{
+		<span class="hljs-keyword">int</span> time_now = get_milli_count();
+		<span class="hljs-keyword">if</span> (records.empty()) {
+			<span class="hljs-built_in">std</span>::<span class="hljs-built_in">cerr</span> &lt;&lt; <span class="hljs-string">"Unable to finish: timer is not set"</span>;
+			<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+		}
+		<span class="hljs-keyword">int</span> delta_time = time_now - records.back().first;
+		<span class="hljs-built_in">std</span>::<span class="hljs-built_in">cout</span> &lt;&lt; records.back().second &lt;&lt; <span class="hljs-string">" : "</span> &lt;&lt; delta_time &lt;&lt; <span class="hljs-string">"ms\n"</span>;
+
+		<span class="hljs-keyword">auto</span> time_error = get_milli_count() - time_now;
+		<span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span>&amp; record : records) {
+			record.first -= time_error;
+		}
+
+		<span class="hljs-keyword">return</span> delta_time;
+	}
+};
+</div></code></pre>
+
+</body>
+</html>
