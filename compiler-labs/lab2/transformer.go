@@ -8,6 +8,7 @@ import (
 	"go/format"
     "os"
 	"strconv"
+	//"astutil"
 	//"reflect"
 )
 
@@ -22,10 +23,22 @@ func insertHello(file *ast.File) {
     ast.Inspect(file, func(node ast.Node) bool {
         // Для каждого узла дерева
         if expr, ok := node.(*ast.CallExpr); ok && isIdent(expr.Fun, "make") {
-			//fmt.Println(expr.Args[len(expr.Args) - 1].(*ast.BasicLit).Value)
-			intval, _ := strconv.Atoi(expr.Args[len(expr.Args) - 1].(*ast.BasicLit).Value)
-			intval *= 2
-			expr.Args[len(expr.Args) - 1].(*ast.BasicLit).Value = strconv.Itoa(intval)
+            if len(expr.Args) == 2 {
+                expr.Args = append(expr.Args, expr.Args[len(expr.Args) - 1])
+            }
+            lit_val, ok := expr.Args[len(expr.Args) - 1].(*ast.BasicLit)			
+            if ok {
+                intval, _ := strconv.Atoi(lit_val.Value)
+                intval *= 2
+                new_expr := ast.BasicLit{0, token.INT, strconv.Itoa(intval)}
+                expr.Args[len(expr.Args) - 1] = &new_expr
+            } else {
+                lit2 := ast.BasicLit{0, token.INT, "2"}
+                new_expr := ast.BinaryExpr{expr.Args[len(expr.Args) - 1], 0, token.MUL, &lit2}
+                expr.Args[len(expr.Args) - 1] = &new_expr
+            }
+            
+			
         }
         // Возвращая true, мы разрешаем выполнять обход
         // дочерних узлов

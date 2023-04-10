@@ -3,10 +3,13 @@ package main
 import "fmt"
 
 func main() {
-	a := make([]int, 5)
+	n := 5
+	a := make([]int, 10) // make([]int, 10, 20)
+	a1 := make([]int, n)
 	printSlice("a", a)
+	printSlice("a1", a1)
 
-	b := make([]int, 0, 10)
+	b := make([]int, 0, 10 + 5) // make([]int, 0, 2*(10+5))
 	printSlice("b", b)
 
 	c := b[:2]
