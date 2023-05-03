@@ -1,4 +1,5 @@
 #include "Tokenizer.h"
+#include "Parser.h"
 #include <iostream>
 #include <iterator>
 #include <fstream>
@@ -14,7 +15,10 @@ int main() {
 	string str = buffer.str();
 	
 	Tokenizer tokenizer(str);
-	for (const auto& tkn : tokenizer.tokenize()) {
+	auto tokens = tokenizer.tokenize();
+	for (const auto& tkn : tokens) {
 		cout << tkn << "\n";
 	}
+
+	Parser(tokens).parse();
 }

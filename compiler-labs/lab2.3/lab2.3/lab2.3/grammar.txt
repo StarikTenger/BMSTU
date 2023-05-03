@@ -1,0 +1,19 @@
+prog := ( left = expr  prog
+prog := eof
+left := str )
+left := 'axiom' str )
+expr := symbol expr'
+expr' := | expr
+expr' := .
+expr' := expr
+symbol := str
+symbol := ( str )
+
+prog[(] -> left = expr
+prog[eof] -> END
+left[str] -> )
+left[axiom] -> str )
+expr[str] -> expr
+expr[(] -> str ) expr
+expr[|] -> expr
+expr[.] -> 

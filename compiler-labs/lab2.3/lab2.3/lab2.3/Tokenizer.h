@@ -17,8 +17,10 @@ public:
 		ParR, // )
 		Bar, // |
 		Dot, // .
+		Eq, // =
 		Axiom, // axiom keyword
 		String, // any string
+		Eof, // end of file
 		Err // Error token
 	};
 
@@ -31,6 +33,8 @@ public:
 			type(type), value(value), pos(pos) {};
 		friend ostream& operator<<(ostream& os, const Token& tkn);
 	};
+
+	friend ostream& operator<<(ostream& os, const TokenType& tkn);
 
 	Tokenizer(const string& str);
 
@@ -51,6 +55,9 @@ private:
 
 	// Checks if the symbol is space symbol
 	bool space_symbol(char c);
+
+	//  Isend reached
+	bool end_encountered = false;
 
 	// Moves pos futher though space symbols & comments
 	void skip();

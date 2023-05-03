@@ -9,22 +9,29 @@ Tokenizer::Tokenizer(const string& str) {
 
 optional<Tokenizer::Token> Tokenizer::read_token() {
 	skip();
-	if (str_it == str_end) {
+	if (end_encountered) {
 		return nullopt;
+	}
+	if (str_it == str_end) {
+		end_encountered = true;
+		return Token(TokenType::Eof, "", pos());;
 	}
 	switch (*str_it) {
 	case '(':
 		str_it++;
-		return Token(TokenType::ParL, "(", pos());
+		return Token(TokenType::ParL, "(", pos() - 1);
 	case ')':
 		str_it++;
-		return Token(TokenType::ParR, ")", pos());
+		return Token(TokenType::ParR, ")", pos() - 1);
 	case '|':
 		str_it++;
-		return Token(TokenType::Bar, "|", pos());
+		return Token(TokenType::Bar, "|", pos() - 1);
 	case '.':
 		str_it++;
-		return Token(TokenType::Dot, ".", pos());
+		return Token(TokenType::Dot, ".", pos() - 1);
+	case '=':
+		str_it++;
+		return Token(TokenType::Eq, "=", pos() - 1);
 	default: {
 		size_t start_pos = pos();
 		if (*str_it) {
@@ -68,22 +75,30 @@ void Tokenizer::skip() {
 	bool comment = false;
 	while (str_it != str_end && (space_symbol(*str_it) || *str_it == ';')) {
 		if (*str_it == ';') {
-			while ((*str_it != '\n')) str_it++;
+			while ((str_it != str_end && *str_it != '\n')) str_it++;
 		}
-		str_it++;
+		if (str_it != str_end)
+			str_it++;
 	}
 }
 
-ostream& operator<<(ostream& os, const Tokenizer::Token& tkn) {
+ostream& operator<<(ostream& os, const Tokenizer::TokenType& tkn) {
 	unordered_map<Tokenizer::TokenType, string> names = {
 		{Tokenizer::TokenType::ParL, "ParL"},
 		{Tokenizer::TokenType::ParR, "ParR"},
 		{Tokenizer::TokenType::Bar, "Bar"},
 		{Tokenizer::TokenType::Dot, "Dot"},
+		{Tokenizer::TokenType::Eq, "Eq"},
 		{Tokenizer::TokenType::String, "String"},
 		{Tokenizer::TokenType::Err, "Err"},
+		{Tokenizer::TokenType::Eof, "Eof"},
 	};
-	os << names[tkn.type];
+	os << names[tkn];
+	return os;
+}
+
+ostream& operator<<(ostream& os, const Tokenizer::Token& tkn) {
+	os << tkn.type;
 	os << "[";
 	os << to_string(tkn.pos);
 	os << "]: ";
