@@ -74,6 +74,7 @@ class Grammar {
 	optional<Production> scan_production(
 		vector<Tkn>::const_iterator& scanner_position);
 
+	void print_production(const Production& prod, int depth = 0);
 	void print_expression(const Expression& expr, int depth = 0);
 	static void print_tabs(int n);
 };

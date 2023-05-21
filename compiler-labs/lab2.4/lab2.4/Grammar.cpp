@@ -4,15 +4,24 @@
 
 Grammar::Grammar(const vector<Tokenizer::Token>& tokens) {
 	vector<Tkn>::const_iterator scanner_position = tokens.begin();
-	auto pr = scan_production(scanner_position);
-	cout << "success\n";
-	print_expression(pr->second);
+	while (scanner_position->type != TknType::Eof) {
+		auto pr = scan_production(scanner_position);
+		if (pr) {
+			print_production(*pr);
+			cout << "\n";
+		} else {
+			cerr << "error\n";
+			break;
+		}
+	}
+	
+	
 }
 
 optional<Grammar::Tkn> Grammar::scan_token(
 	vector<Tkn>::const_iterator& scanner_position, TknType type) {
 	if (scanner_position->type == type) {
-		cout << "scan_token " << *scanner_position << "\n";
+		//cout << "scan_token " << *scanner_position << "\n";
 		auto return_value = *scanner_position;
 		scanner_position++;
 		return return_value;
@@ -23,19 +32,19 @@ optional<Grammar::Tkn> Grammar::scan_token(
 optional<Grammar::Nonterm> Grammar::scan_nonterm(
 	vector<Tkn>::const_iterator& scanner_position) {
 	auto it = scanner_position;
-	cout << "scan_nonterm\n";
+	//cout << "scan_nonterm\n";
 
 	if (!scan_token(it, TknType::ParL)) return nullopt;
-	cout << *it << " 1\n";
+	//cout << *it << " 1\n";
 	string value;
 	if (auto token = scan_token(it, TknType::String)) {
 		value = token->value;
 	} else {
 		return nullopt;
 	}
-	cout << *it << " 2\n";
+	//cout << *it << " 2\n";
 	if (!scan_token(it, TknType::ParR)) return nullopt;
-	cout << *it << " 3\n";
+	//cout << *it << " 3\n";
 	Nonterm id;
 	if (name_to_nonterm.count(value)) {
 		id = name_to_nonterm[value];
@@ -52,7 +61,7 @@ optional<Grammar::Nonterm> Grammar::scan_nonterm(
 optional<Grammar::Term> Grammar::scan_term(
 	vector<Tkn>::const_iterator& scanner_position) {
 	auto it = scanner_position;
-	cout << "scan_term\n";
+	//cout << "scan_term\n";
 
 	string value;
 	if (auto token = scan_token(it, TknType::String)) {
@@ -71,7 +80,7 @@ optional<Grammar::Alternative> Grammar::scan_alternative(
 	if (expr_disallowed & ALT_CODE) {
 		return nullopt;
 	}
-	cout << "scan_alternative\n";
+	//cout << "scan_alternative\n";
 
 	auto expr1 = scan_expression(it, expr_disallowed | ALT_CODE);
 	if (!expr1) return nullopt;
@@ -93,7 +102,7 @@ optional<Grammar::Concatenation> Grammar::scan_concatenation(
 	if (expr_disallowed & CONC_CODE) {
 		return nullopt;
 	}
-	cout << "scan_concatenation\n";
+	//cout << "scan_concatenation\n";
 
 	auto expr1 = scan_expression(it, expr_disallowed | CONC_CODE);
 	if (!expr1) return nullopt;
@@ -110,8 +119,8 @@ optional<Grammar::Concatenation> Grammar::scan_concatenation(
 optional<Grammar::Expression> Grammar::scan_expression(
 	vector<Tkn>::const_iterator& scanner_position, size_t expr_disallowed) {
 	auto it = scanner_position;
-	cout << "scan_expression\n";
-	cout << expr_disallowed << "\n";
+	//cout << "scan_expression\n";
+	//cout << expr_disallowed << "\n";
 	if (auto expr = scan_alternative(it, expr_disallowed)) {
 		scanner_position = it;
 		return Expression(*expr);
@@ -142,17 +151,16 @@ optional<Grammar::Expression> Grammar::scan_expression(
 optional<Grammar::Production> Grammar::scan_production(
 	vector<Tkn>::const_iterator& scanner_position) {
 	auto it = scanner_position;
-	cout << "scan_production\n";
 
 	auto nonterm = scan_nonterm(it);
 	scan_token(it, TknType::Eq);
 	auto expr = scan_expression(it);
 
 	if (nonterm && expr) {
+		scan_token(it, TknType::Dot);
 		scanner_position = it;
 		return pair<Nonterm, Expression>(*nonterm, *expr);
 	}
-
 	return nullopt;
 }
 
@@ -160,6 +168,15 @@ void Grammar::print_tabs(int n) {
 	for (int i = 0; i < n; i++) {
 		cout << "|  ";
 	}
+}
+
+void Grammar::print_production(const Production& prod, int depth) {
+	print_tabs(depth);
+	cout << "Production\n";
+	print_tabs(depth + 1);
+	cout << "Nonterm: ";
+	cout << nonterm_to_name[prod.first] << "\n";
+	print_expression(prod.second, depth + 1);
 }
 
 void Grammar::print_expression(const Expression& expr, int depth) {
