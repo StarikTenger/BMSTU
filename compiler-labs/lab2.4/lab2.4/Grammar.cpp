@@ -158,7 +158,7 @@ optional<Grammar::Production> Grammar::scan_production(
 	auto expr = scan_expression(it);
 
 	if (nonterm && expr) {
-		scan_token(it, TknType::Dot);
+		while(scan_token(it, TknType::Dot));
 		scanner_position = it;
 		return pair<Nonterm, Expression>(*nonterm, *expr);
 	}

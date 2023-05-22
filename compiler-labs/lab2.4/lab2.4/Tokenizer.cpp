@@ -14,7 +14,7 @@ optional<Tokenizer::Token> Tokenizer::read_token() {
 	}
 	if (str_it == str_end) {
 		end_encountered = true;
-		return Token(TokenType::Eof, "", pos());;
+		return Token(TokenType::Eof, "", pos());
 	}
 	switch (*str_it) {
 	case '(':
@@ -35,6 +35,9 @@ optional<Tokenizer::Token> Tokenizer::read_token() {
 	case '.':
 		str_it++;
 		return Token(TokenType::Dot, ".", pos() - 1);
+	case '\n':
+		str_it++;
+		return Token(TokenType::Dot, ".", pos() - 1);
 	case '=':
 		str_it++;
 		return Token(TokenType::Eq, "=", pos() - 1);
@@ -46,16 +49,13 @@ optional<Tokenizer::Token> Tokenizer::read_token() {
 		if (*str_it) {
 			string acc = "";
 			while (str_it != str_end && !space_symbol(*str_it) &&
-				string("*[]().|").find(*str_it) == string::npos) {
-				if (*str_it == '\\')
-					str_it++;
+				   string("*[]().|\n").find(*str_it) == string::npos) {
+				if (*str_it == '\\') str_it++;
 				acc += *str_it;
 				str_it++;
 			}
-			return Token(acc == "axiom" ? TokenType::Axiom : TokenType::String,
-				acc, start_pos);
-		}
-		else {
+			return Token(TokenType::String, acc, start_pos);
+		} else {
 			return Token(TokenType::String, "" + *(str_it++), start_pos);
 		}
 	}
@@ -77,17 +77,17 @@ size_t Tokenizer::pos() {
 }
 
 bool Tokenizer::space_symbol(char c) {
-	return c == ' ' || c == '\n' || c == '\t';
+	return c == ' ' || c == '\t';
 }
 
 void Tokenizer::skip() {
 	bool comment = false;
 	while (str_it != str_end && (space_symbol(*str_it) || *str_it == ';')) {
 		if (*str_it == ';') {
-			while ((str_it != str_end && *str_it != '\n')) str_it++;
+			while (str_it != str_end && *str_it != '\n')
+				str_it++;
 		}
-		if (str_it != str_end)
-			str_it++;
+		if (str_it != str_end) str_it++;
 	}
 }
 
