@@ -245,17 +245,24 @@ template <class Os, class K> Os& operator<<(Os& os, const std::set<K>& v) {
 	os << '[' << v.size() << "] {";
 	bool o{};
 	for (const auto& e : v)
-		os << (o ? ", " : (o = 1, " ")) << e;
-	return os << " }\n";
+		os << (o ? ", '" : (o = 1, " '")) << e << "'";
+	return os << " }";
 }
 
 void Grammar::calc_first() {
 	cout << "\ncalculating FIRST\n";
-	for (int i = 0; i < 10; i++) {
+	bool first_changed = true;
+	while (first_changed) {
+		first_changed = false;
 		for (const auto& prod : productions) {
-			first[prod.first].merge(calc_F(prod.second));
-			cout << nonterm_to_name[prod.first] << " " << first[prod.first]
-				 << "\n";
+			for (const auto& term : calc_F(prod.second)) {
+				first_changed = first_changed || !first[prod.first].count(term);
+				first[prod.first].insert(term);
+			}
 		}
+	}
+
+	for (const auto& prod : productions) {
+		cout << nonterm_to_name[prod.first] << ": " << first[prod.first] << "\n";
 	}
 }
