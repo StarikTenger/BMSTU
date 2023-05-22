@@ -14,6 +14,7 @@ class Grammar {
 	struct Expression;
 	using Nonterm = int;
 	using Term = string;
+	const string Eps = "";
 
 	struct Alternative {
 		vector<Expression> children;
@@ -47,8 +48,8 @@ class Grammar {
 	map<Nonterm, Expression> productions;
 
 	Nonterm nonterm_current = 0;
-	map<Nonterm, Term> nonterm_to_name;
-	map<Term, Nonterm> name_to_nonterm;
+	map<Nonterm, string> nonterm_to_name;
+	map<string, Nonterm> name_to_nonterm;
 
 	//== Parsers ===============================================================
 	using Tkn = Tokenizer::Token;
@@ -74,7 +75,13 @@ class Grammar {
 	optional<Production> scan_production(
 		vector<Tkn>::const_iterator& scanner_position);
 
+	//== Output ================================================================
 	void print_production(const Production& prod, int depth = 0);
 	void print_expression(const Expression& expr, int depth = 0);
 	static void print_tabs(int n);
+
+	//== FIRST =================================================================
+	map<Nonterm, set<Term>> first;
+	set<Term> calc_F(const Expression& expr);
+	void calc_first();
 };

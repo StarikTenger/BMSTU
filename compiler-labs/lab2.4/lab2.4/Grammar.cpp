@@ -7,6 +7,7 @@ Grammar::Grammar(const vector<Tokenizer::Token>& tokens) {
 	while (scanner_position->type != TknType::Eof) {
 		auto pr = scan_production(scanner_position);
 		if (pr) {
+			productions.insert(*pr);
 			print_production(*pr);
 			cout << "\n";
 		} else {
@@ -14,14 +15,14 @@ Grammar::Grammar(const vector<Tokenizer::Token>& tokens) {
 			break;
 		}
 	}
-	
-	
+
+	calc_first();
 }
 
 optional<Grammar::Tkn> Grammar::scan_token(
 	vector<Tkn>::const_iterator& scanner_position, TknType type) {
 	if (scanner_position->type == type) {
-		//cout << "scan_token " << *scanner_position << "\n";
+		// cout << "scan_token " << *scanner_position << "\n";
 		auto return_value = *scanner_position;
 		scanner_position++;
 		return return_value;
@@ -32,19 +33,19 @@ optional<Grammar::Tkn> Grammar::scan_token(
 optional<Grammar::Nonterm> Grammar::scan_nonterm(
 	vector<Tkn>::const_iterator& scanner_position) {
 	auto it = scanner_position;
-	//cout << "scan_nonterm\n";
+	// cout << "scan_nonterm\n";
 
 	if (!scan_token(it, TknType::ParL)) return nullopt;
-	//cout << *it << " 1\n";
+	// cout << *it << " 1\n";
 	string value;
 	if (auto token = scan_token(it, TknType::String)) {
 		value = token->value;
 	} else {
 		return nullopt;
 	}
-	//cout << *it << " 2\n";
+	// cout << *it << " 2\n";
 	if (!scan_token(it, TknType::ParR)) return nullopt;
-	//cout << *it << " 3\n";
+	// cout << *it << " 3\n";
 	Nonterm id;
 	if (name_to_nonterm.count(value)) {
 		id = name_to_nonterm[value];
@@ -61,7 +62,7 @@ optional<Grammar::Nonterm> Grammar::scan_nonterm(
 optional<Grammar::Term> Grammar::scan_term(
 	vector<Tkn>::const_iterator& scanner_position) {
 	auto it = scanner_position;
-	//cout << "scan_term\n";
+	// cout << "scan_term\n";
 
 	string value;
 	if (auto token = scan_token(it, TknType::String)) {
@@ -80,7 +81,7 @@ optional<Grammar::Alternative> Grammar::scan_alternative(
 	if (expr_disallowed & ALT_CODE) {
 		return nullopt;
 	}
-	//cout << "scan_alternative\n";
+	// cout << "scan_alternative\n";
 
 	auto expr1 = scan_expression(it, expr_disallowed | ALT_CODE);
 	if (!expr1) return nullopt;
@@ -102,7 +103,7 @@ optional<Grammar::Concatenation> Grammar::scan_concatenation(
 	if (expr_disallowed & CONC_CODE) {
 		return nullopt;
 	}
-	//cout << "scan_concatenation\n";
+	// cout << "scan_concatenation\n";
 
 	auto expr1 = scan_expression(it, expr_disallowed | CONC_CODE);
 	if (!expr1) return nullopt;
@@ -119,8 +120,8 @@ optional<Grammar::Concatenation> Grammar::scan_concatenation(
 optional<Grammar::Expression> Grammar::scan_expression(
 	vector<Tkn>::const_iterator& scanner_position, size_t expr_disallowed) {
 	auto it = scanner_position;
-	//cout << "scan_expression\n";
-	//cout << expr_disallowed << "\n";
+	// cout << "scan_expression\n";
+	// cout << expr_disallowed << "\n";
 	if (auto expr = scan_alternative(it, expr_disallowed)) {
 		scanner_position = it;
 		return Expression(*expr);
@@ -143,7 +144,7 @@ optional<Grammar::Expression> Grammar::scan_expression(
 		}
 		scanner_position = it;
 		return Expression(*expr_inner);
-	} 
+	}
 
 	return nullopt;
 }
@@ -208,5 +209,53 @@ void Grammar::print_expression(const Expression& expr, int depth) {
 		print_tabs(depth);
 		cout << "Term: ";
 		cout << get<Term>(expr.value) << "\n";
+	}
+}
+
+set<Grammar::Term> Grammar::calc_F(const Expression& expr) {
+	set<Term> res;
+	if (const auto* alt = get_if<Alternative>(&expr.value)) {
+		auto set_l = calc_F(alt->children[0]);
+		auto set_r = calc_F(alt->children[1]);
+		set_l.merge(set_r);
+		res = set_l;
+	}
+	if (const auto* conc = get_if<Concatenation>(&expr.value)) {
+		auto set_l = calc_F(conc->children[0]);
+		auto set_r = calc_F(conc->children[1]);
+		if (set_l.count(Eps)) {
+			set_l.erase(Eps);
+			set_l.merge(set_r);
+		}
+		res = set_l;
+	}
+	if (const auto* nonterm = get_if<Nonterm>(&expr.value)) {
+		res = first[*nonterm];
+	}
+	if (const auto* term = get_if<Term>(&expr.value)) {
+		res = {*term};
+	}
+	if (expr.kleene_star) {
+		res.insert(Eps);
+	}
+	return res;
+}
+
+template <class Os, class K> Os& operator<<(Os& os, const std::set<K>& v) {
+	os << '[' << v.size() << "] {";
+	bool o{};
+	for (const auto& e : v)
+		os << (o ? ", " : (o = 1, " ")) << e;
+	return os << " }\n";
+}
+
+void Grammar::calc_first() {
+	cout << "\ncalculating FIRST\n";
+	for (int i = 0; i < 10; i++) {
+		for (const auto& prod : productions) {
+			first[prod.first].merge(calc_F(prod.second));
+			cout << nonterm_to_name[prod.first] << " " << first[prod.first]
+				 << "\n";
+		}
 	}
 }
