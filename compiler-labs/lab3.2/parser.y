@@ -37,7 +37,8 @@
 %token <std::string> TAG_NAME "tag name"
 %token <std::string> CLOSE_TAG "close tag"
 %token <std::string> TEXT "text"
-%token <int> NUMBER "number"
+%token <std::string> VALUE "value"
+
 //%nterm <int> exp
 %token YYEOF 0
 
@@ -47,21 +48,22 @@
 %start element;
 
 // For printing tags
-_ASSIGN: ASSIGN {std::cout << "=";};
-_IDENTIFIER: IDENTIFIER {std::cout << " " << $1;};
-_STRING: STRING {std::cout << $1;};
-_TAG_NAME: TAG_NAME {drv.print_tab(); std::cout << $1;};
-_CLOSE_TAG: CLOSE_TAG {drv.nesting--; drv.print_tab(); std::cout << $1 << "\n";};
+_ASSIGN: ASSIGN {drv.print("=");};
+_IDENTIFIER: IDENTIFIER {drv.print(" "); drv.print($1);};
+_STRING: STRING {drv.print($1);};
+_TAG_NAME: TAG_NAME {drv.print_tab(); drv.print($1);};
+_CLOSE_TAG: CLOSE_TAG {drv.nesting--; drv.print_tab(); drv.print($1); drv.newline();};
 
-element: open_tag elements _CLOSE_TAG {};
+element: open_tag elements _CLOSE_TAG {}
+| TEXT {drv.print_tab(); drv.print($1); drv.newline();};
 
 elements:
   %empty           {}
 | elements element {};
 
-open_tag: _TAG_NAME attrs ">" {std::cout << ">\n"; drv.nesting++;};
+open_tag: _TAG_NAME attrs ">" {drv.print(">"); drv.newline(); drv.nesting++;};
 
-attr: _IDENTIFIER _ASSIGN NUMBER {std::cout << $3;};
+attr: _IDENTIFIER _ASSIGN VALUE {std::cout << $3;};
 
 attrs:
   %empty     {}

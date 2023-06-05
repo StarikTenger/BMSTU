@@ -10,16 +10,12 @@
 
 %option noyywrap nounput noinput batch debug
 
-%{
-  // A number symbol corresponding to the value in S.
-  yy::parser::symbol_type
-  make_NUMBER (const std::string &s, const yy::parser::location_type& loc);
-%}
-
 id    [a-zA-Z][a-zA-Z_0-9]*
 int   [0-9]+
 blank [ \t\r]
-
+symbol " "|[a-zA-Z_0-9]
+text  [a-zA-Z_0-9](" "|[a-zA-Z_0-9])*
+comment "<!--"{symbol}*"-->"
 
 %{
   // Code run each time a pattern is matched.
@@ -36,6 +32,7 @@ blank [ \t\r]
 %}
 
 {blank}+   loc.step ();
+{comment}+ loc.step ();
 \n+        loc.lines (yyleng); loc.step ();
 
 
@@ -44,7 +41,7 @@ blank [ \t\r]
 ">"         return yy::parser::make_R_BRACKET  (loc);
 "="         return yy::parser::make_ASSIGN   (loc);
 
-{int}      return make_NUMBER (yytext, loc);
+{int}|("\""{symbol}*"\"")     return yy::parser::make_VALUE (yytext, loc);
 {id}       return yy::parser::make_IDENTIFIER (yytext, loc);
 
 .          {
@@ -52,18 +49,10 @@ blank [ \t\r]
                (loc, "invalid character: " + std::string(yytext));
 }
 
+{text}/"<" return yy::parser::make_TEXT (yytext, loc);
+
 <<EOF>>    return yy::parser::make_YYEOF (loc);
 %%
-
-yy::parser::symbol_type
-make_NUMBER (const std::string &s, const yy::parser::location_type& loc)
-{
-  errno = 0;
-  long n = strtol (s.c_str(), NULL, 10);
-  if (! (INT_MIN <= n && n <= INT_MAX && errno != ERANGE))
-    throw yy::parser::syntax_error (loc, "integer is out of range: " + s);
-  return yy::parser::make_NUMBER ((int) n, loc);
-}
 
 
 

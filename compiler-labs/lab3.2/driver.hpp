@@ -36,8 +36,25 @@ public:
 	// The token's location used by the scanner.
 	yy::location location;
 
+	void print(std::string str) {
+		if (cur_col + str.size() > col_limit) {
+			newline();
+		}
+		cur_col += str.size();
+		std::cout << str;
+	}
+
+	void newline() {
+		cur_col = 0;
+		std::cout << "\n";
+	}
+
 	void print_tab() {
+		cur_col += nesting * 4;
 		for (size_t i=0; i<nesting; i++) printf("\t");
 	}
+private:
+	size_t col_limit = 80;
+	size_t cur_col = 0;
 };
 #endif // ! DRIVER_HH
