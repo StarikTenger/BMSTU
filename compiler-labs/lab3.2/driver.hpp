@@ -20,6 +20,7 @@ public:
 	int result;
 
 	size_t nesting = 0;
+	size_t col_limit = 80;
 
 	// Run the parser on file F.  Return 0 on success.
 	int parse (const std::string& f);
@@ -37,10 +38,11 @@ public:
 	yy::location location;
 
 	void print(std::string str) {
-		if (cur_col + str.size() > col_limit) {
-			newline();
-		}
 		cur_col += str.size();
+		if (cur_col > col_limit) {
+			newline();
+			print_tab();
+		}
 		std::cout << str;
 	}
 
@@ -54,7 +56,6 @@ public:
 		for (size_t i=0; i<nesting; i++) printf("\t");
 	}
 private:
-	size_t col_limit = 80;
 	size_t cur_col = 0;
 };
 #endif // ! DRIVER_HH

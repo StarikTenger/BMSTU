@@ -63,7 +63,7 @@ elements:
 
 open_tag: _TAG_NAME attrs ">" {drv.print(">"); drv.newline(); drv.nesting++;};
 
-attr: _IDENTIFIER _ASSIGN VALUE {std::cout << $3;};
+attr: _IDENTIFIER _ASSIGN VALUE {drv.print($3);};
 
 attrs:
   %empty     {}
