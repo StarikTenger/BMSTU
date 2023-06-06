@@ -68,7 +68,12 @@ DIR \$[A-Z]+
 
 \n {cur_line++; cur_column = 0;}
 
-[" "\t]+ {}/* eat up whitespace */
+[" "\t\r]+ {}/* eat up whitespace */
+
+. {
+	printf( "Unrecognized character(%zu %zu): '%s'\n", cur_line, 
+		cur_column-yyleng, yytext);
+}
 
 %%
 

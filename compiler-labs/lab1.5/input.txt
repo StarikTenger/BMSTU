@@ -1,4 +1,5 @@
 Windows98MustDie $DIRECTIVE MyRealName 
 $DONOTHINGFORTHIRTYMINUTES Windows98MustDie
+/error
 Aa
 Aa $SLEEP
