@@ -1,0 +1,5 @@
+"asdsa" "str2" 12 1_3
+_error_
+"a\\\n\ta" 1 2 3
+"string with \error"
+2__0__0
